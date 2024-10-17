@@ -9,7 +9,7 @@ from psychopy.tools.filetools import fromFile, toFile
 import logging 
 import numpy as np
 from graphics import Graphics 
-from config import KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_SELECT, KEY_ABORT, COLOR_RED, COLOR_BLUE, COLOR_GREY, COLOR_HIGHTLIGHT 
+from config import KEY_DOWN, KEY_RIGHT, KEY_SELECT, KEY_ABORT, KEY_CONTINUE, COLOR_HIGHTLIGHT 
 from util import jsonify
 
 
@@ -280,50 +280,66 @@ class GridWorld:
         self._tip.setText(tip_text if tip_text else 'press space to continue' if space else '')
         # self.win.flip()
         if space:
-            event.waitKeys(keyList=['space'])
+            event.waitKeys(keyList=KEY_SELECT)
 
     
     def run(self):
         """ Main loop to run the grid world. """
-        while self.done == False:
-            
+        while not self.done:
+            # Highlight the current tile and draw the grid
             self.highlight_tile()
             self.draw_grid()
             self.message(f'Score: {self.score}')
             self.win.flip()
+
+            # Get key input
             keys = event.getKeys()
 
-            if KEY_UP in keys:
-                self.log('move', {'direction': 'up'})
-                self.move_cursor('up')
-            elif KEY_DOWN in keys:
+            # Handle movement only for KEY_DOWN and KEY_RIGHT
+            if KEY_DOWN in keys:
                 self.log('move', {'direction': 'down'})
-                self.move_cursor('down')
-            elif KEY_LEFT in keys:
-                self.log('move', {'direction': 'left'})
-                self.move_cursor('left')
+                # Check if we are at the bottom boundary, wrap around to the top
+                if self.current_pos[0] == self.n - 1:  # Bottom of the grid (y-axis)
+                    self.current_pos[0] = 0  # Wrap to top
+                else:
+                    self.move_cursor('down')  # Normal move down
+
             elif KEY_RIGHT in keys:
                 self.log('move', {'direction': 'right'})
-                self.move_cursor('right')
+                # Check if we are at the right boundary, wrap around to the left
+                if self.current_pos[1] == self.n - 1:  # Rightmost side (x-axis)
+                    self.current_pos[1] = 0  # Wrap to the left
+                else:
+                    self.move_cursor('right')  # Normal move right
+
+            # Handle tile reveal
             elif KEY_SELECT in keys:
-                self.reveal_tile() 
-                self.win
+                self.reveal_tile()
                 if self.red_revealed == self.total_red:
                     self.log('done')
+
+            # Check if all red tiles are revealed
             elif self.red_revealed >= self.total_red:
                 self.draw_full_grid()
                 self.center_message(f'{self.done_message}')
-                core.wait(2) 
-                self.win.flip() 
+                self.done_time = core.getTime()
+                self.log('done')
+                core.wait(2)  # Pause for 2 seconds
+                self.win.flip()
                 logging.info("All red tiles revealed. Moving to next trial.")
-                self.done = True 
+                self.done = True
+
+            # Handle abort case
             elif KEY_ABORT in keys:
                 logging.info("Abort key pressed. Exiting the game.")
                 self.done = True
                 self.status = 'abort'
+
+        # Clean up and finish
         self.hide_message()
         self.fade_out()
-        self.done_time = core.getTime()
+
+        
 
 
 

@@ -9,7 +9,7 @@ import logging
 import numpy as np
 import hashlib
 
-from EyeLinkCoreGraphicsPsychoPy import EyeLinkCoreGraphicsPsychoPy
+# from EyeLinkCoreGraphicsPsychoPy import EyeLinkCoreGraphicsPsychoPy
 from psychopy import visual, core, event, monitors, gui
 
 def hide_dock():

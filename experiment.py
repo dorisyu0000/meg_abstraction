@@ -8,7 +8,7 @@ from psychopy import core, visual, gui, data, event
 from psychopy.tools.filetools import fromFile, toFile
 import numpy as np
 from trials import GridWorld
-from config import KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_SELECT, KEY_ABORT, COLOR_RED, COLOR_BLUE, COLOR_GREY, COLOR_HIGHTLIGHT
+from config import KEY_DOWN, KEY_RIGHT, KEY_SELECT, KEY_ABORT, KEY_CONTINUE, COLOR_RED, COLOR_BLUE, COLOR_GREY, COLOR_HIGHTLIGHT
 from util import jsonify
 
 
@@ -57,12 +57,13 @@ def stage(f):
 class AbortKeyPressed(Exception): pass
 
 class Experiment(object):
-    def __init__(self, config_number, name=None, full_screen=False,n_trial = None, **kws):
+    def __init__(self, config_number, block_size = 10,name=None, full_screen=False,n_trial = None, **kws):
         self.name = name
         self.full_screen = full_screen
         self.trial_index = 0
         self.survey = None
         self.data = []
+        self.block_size = block_size
         if n_trial is None:
             self.n_trial = len(self.trials['main'])
         else:
@@ -173,7 +174,7 @@ class Experiment(object):
         self._tip.setText(tip_text if tip_text else 'press space to continue' if space else '')
         self.win.flip()
         if space:
-            event.waitKeys(keyList=['space'])
+            event.waitKeys(keyList=KEY_SELECT)
 
         
     def wait_keys(self, keys, time_limit=float('inf')):
@@ -197,14 +198,11 @@ class Experiment(object):
             # Capture key input
             keys = event.getKeys()
             if direction_key in keys:
-                if direction_key == KEY_UP:
-                    grid_world.move_cursor('up')
-                elif direction_key == KEY_DOWN:
+                if direction_key == KEY_DOWN:
                     grid_world.move_cursor('down')
-                elif direction_key == KEY_LEFT:
-                    grid_world.move_cursor('left')
                 elif direction_key == KEY_RIGHT:
                     grid_world.move_cursor('right')
+
 
                 # Update the grid after the move
                 grid_world.highlight_tile()
@@ -251,10 +249,10 @@ class Experiment(object):
         self.win.flip()
 
         # Guide the user through the movement steps
-        self.teach_move(grid_world, KEY_UP, f"Your current location is highlighted in yellow. Use the {KEY_UP} key to move the highlighted square up.")
-        self.teach_move(grid_world, KEY_DOWN, f"Great! Now press the {KEY_DOWN} key to move down.")
-        self.teach_move(grid_world, KEY_LEFT, f"Good! Now press the {KEY_LEFT} key to move left.")
-        self.teach_move(grid_world, KEY_RIGHT, f"Well done! Now press the {KEY_RIGHT} key to move right.")
+        self.teach_move(grid_world, KEY_DOWN, f"Your current location is highlighted in yellow. Use the {KEY_DOWN} key to move the highlighted square up.")
+        self.teach_move(grid_world, KEY_RIGHT, f"Good! Now press the {KEY_RIGHT} key to move right.")
+        self.teach_move(grid_world, KEY_RIGHT, f"When you hit the boundary, it will start from the righ. Now press the {KEY_RIGHT} key to move to the other side.")
+
 
         # Teach how to select a tile
         self.teach_select(grid_world, f"Awesome! Now press the {KEY_SELECT} key to reveal the current tile.")
@@ -262,7 +260,7 @@ class Experiment(object):
 
         grid_world.run()
         # Final instruction
-        self.message("You have completed the practice! Press space to continue.", space=True)
+        self.message(f"You have completed the practice! Press {KEY_CONTINUE} to continue.", space=True)
         self.message(f"Now you will start the main game. You have total {self.n_trial} trials. Good luck!", space=True)
 
     
@@ -312,6 +310,66 @@ class Experiment(object):
                         continue
                     else:
                         return
+
+    @stage
+    def run_blocks(self, start_block=0):
+        """
+        Run through trials in blocks, with breaks between each block.
+        Each block consists of a fixed number of trials (e.g., 10 trials).
+        """
+
+        total_blocks = (self.n_trial + self.block_size - 1) // self.block_size  # Calculate total number of blocks
+
+        # Determine which block to start at (default is 0)
+        if start_block >= total_blocks:
+            start_block = total_blocks - 1
+        block_start_trial = start_block * self.block_size  # Determine starting trial based on block
+
+        # Iterate through the trials in blocks
+        for block in range(start_block, total_blocks):
+            logging.info(f"Starting block {block + 1}/{total_blocks}")
+
+            # Run each trial in the block
+            block_end_trial = min(block_start_trial + self.block_size, self.n_trial)
+            for trial_index in range(block_start_trial, block_end_trial):
+                logging.info(f"Running trial {trial_index + 1}/{self.n_trial}")
+
+                trial = self.trials['main'][trial_index]  # Get the trial data
+                prm = {**trial}
+                gw = GridWorld(win=self.win, done_message=self.done_message, **prm)
+
+                # Run the trial
+                gw.run()
+                psychopy.logging.flush()
+                self.trial_data.append(gw.data)
+
+                self.trial_index += 1
+
+                # If we've reached the last trial, show the final message
+                if self.trial_index == self.n_trial:
+                    self.done_message = 'You have completed the experiment!'
+                    self.message('You have completed the experiment!', space=True)
+                    logging.info('Experiment completed.')
+                    return  # Exit after the last trial
+
+            # Block completed, pause before the next block
+            if self.trial_index < self.n_trial:  # Avoid break if this is the last block
+                self.message(
+                    f"You have completed Block {block + 1}/{total_blocks}. Take a break. Press {KEY_CONTINUE} to continue.",
+                    space=False,
+                    tip_text=f"Press {KEY_CONTINUE} to continue to the next block."
+                )
+
+                # Wait for the user to press the continue key to move to the next block
+                keys = event.waitKeys(keyList=[KEY_CONTINUE, KEY_ABORT])
+                if KEY_ABORT in keys:
+                    logging.warning('Experiment aborted by user.')
+                    self.message('Experiment aborted. Exiting...', space=True)
+                    return  # Exit the experiment if the user presses the abort key
+
+            # Move to the next block of trials
+            block_start_trial = block_end_trial
+
 
 
     @property
