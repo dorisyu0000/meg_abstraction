@@ -92,10 +92,7 @@ class GridWorld:
             **info
         }
         self.data["events"].append(datum)
-        if self.triggers and event in TRIGGERS:
-            self.triggers.send(TRIGGERS[event])
-        if self.eyelink:
-            self.eyelink.message(jsonify(datum), log=False)
+        
     
     def create_grid(self):  
         """ Create a grid using the provided grid_code, where 1 is red and -1 is blue, and center the grid with gaps. """
@@ -341,9 +338,6 @@ class GridWorld:
 
         
 
-
-
-  
 if __name__ == '__main__':
     win = visual.Window([800, 800], fullscr=False, color='white', units='height', done_message='All red tiles revealed. Moving to next trial in 1 second.')
     grid = [
