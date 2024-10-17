@@ -20,6 +20,7 @@ import os
 DATA_PATH = f'data/exp/{VERSION}'
 SURVEY_PATH = f'data/survey'
 CONFIG_PATH = f'config/{VERSION}'
+
 LOG_PATH = 'log'
 PSYCHO_LOG_PATH = 'psycho-log'
 for p in (DATA_PATH, CONFIG_PATH, LOG_PATH, PSYCHO_LOG_PATH, SURVEY_PATH):
