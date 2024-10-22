@@ -55,10 +55,27 @@ def stage(f):
 
     return wrapper
 
+def get_next_config_number():
+    used = set()
+    for fn in os.listdir(DATA_PATH):
+        m = re.match(r'.*_P(\d+)\.', fn)
+        if m:
+            used.add(int(m.group(1)))
+
+    possible = range(1, 1 + len(os.listdir(CONFIG_PATH)))
+    try:
+        n = next(i for i in possible if i not in used)
+        return n
+    except StopIteration:
+        print("WARNING: USING RANDOM CONFIGURATION NUMBER")
+        return np.random.choice(list(possible))
+    
 class AbortKeyPressed(Exception): pass
 
 class Experiment(object):
-    def __init__(self, config_number, block_size = 10,name=None, full_screen=False,n_trial = None, **kws):
+    def __init__(self, config_number = None, block_size = 10,name=None, full_screen=False,n_trial = None, **kws):
+        if config_number is None:
+            config_number = get_next_config_number()
         self.name = name
         self.full_screen = full_screen
         self.trial_index = 0
@@ -168,13 +185,13 @@ class Experiment(object):
             event.waitKeys(keyList=['space'])
 
 
-    def message(self, msg, space=False, tip_text=None):
+    def message(self, msg, select=False, tip_text=None):
         logging.debug('message: %s (%s)', msg, tip_text)
         self.show_message()
         self._message.setText(msg)
-        self._tip.setText(tip_text if tip_text else 'press space to continue' if space else '')
+        self._tip.setText(tip_text if tip_text else f'press {KEY_SELECT} to continue' if select else '')
         self.win.flip()
-        if space:
+        if select:
             event.waitKeys(keyList=KEY_SELECT)
 
         
@@ -188,7 +205,7 @@ class Experiment(object):
     
     def teach_move(self, grid_world, direction_key, instruction):
         """ Guide the user to move in a specific direction with a given instruction. """
-        self.message(instruction, space=False)  # Show the instruction without waiting for space
+        self.message(instruction, select=False)  # Show the instruction without waiting for select key
 
         while True:
             # Draw the grid and wait for key press
@@ -212,7 +229,7 @@ class Experiment(object):
                 break
     def teach_select(self, grid_world, instruction):
         """ Guide the user to select a tile. """
-        self.message(instruction, space=False)  # Show the instruction without waiting for space
+        self.message(instruction, select=False)  # Show the instruction without waiting for select key 
 
         while True:
             # Draw the grid and wait for key press
@@ -230,9 +247,9 @@ class Experiment(object):
     @stage
     def intro(self):
         """ Show intro instructions and allow user to practice moving the cursor. """
-        self.message('Welcome!', space=True)
-        self.message('In this game, you will select squares in a grid to get points.', space=True)
-        self.message('Your goal is to uncover all the red tiles while uncovering as few blue tiles as possible.', space=True)
+        self.message('Welcome!', select=True)
+        self.message('In this game, you will select squares in a grid to get points.', select=True)
+        self.message('Your goal is to uncover all the red tiles while uncovering as few blue tiles as possible.', select=True)
 
         # Load a sample practice grid for movement demonstration
         sample_grid = [
@@ -261,8 +278,8 @@ class Experiment(object):
 
         grid_world.run()
         # Final instruction
-        self.message(f"You have completed the practice! Press {KEY_CONTINUE} to continue.", space=True)
-        self.message(f"Now you will start the main game. You have total {self.n_trial} trials. Good luck!", space=True)
+        self.message(f"You have completed the practice! Press {KEY_CONTINUE} to continue.", select=True)
+        self.message(f"Now you will start the main game. You have total {self.n_trial} trials. Good luck!", select=True)
 
     
     @stage
@@ -349,7 +366,7 @@ class Experiment(object):
                 # If we've reached the last trial, show the final message
                 if self.trial_index == self.n_trial:
                     self.done_message = 'You have completed the experiment!'
-                    self.message('You have completed the experiment!', space=True)
+                    self.message('You have completed the experiment!', select=True)
                     logging.info('Experiment completed.')
                     return  # Exit after the last trial
 
@@ -357,7 +374,7 @@ class Experiment(object):
             if self.trial_index < self.n_trial:  # Avoid break if this is the last block
                 self.message(
                     f"You have completed Block {block + 1}/{total_blocks}. Take a break. Press {KEY_CONTINUE} to continue.",
-                    space=False,
+                    select=False,
                     tip_text=f"Press {KEY_CONTINUE} to continue to the next block."
                 )
 
@@ -365,7 +382,7 @@ class Experiment(object):
                 keys = event.waitKeys(keyList=[KEY_CONTINUE, KEY_ABORT])
                 if KEY_ABORT in keys:
                     logging.warning('Experiment aborted by user.')
-                    self.message('Experiment aborted. Exiting...', space=True)
+                    self.message('Experiment aborted. Exiting...', select=True)
                     return  # Exit the experiment if the user presses the abort key
 
             # Move to the next block of trials
@@ -383,7 +400,7 @@ class Experiment(object):
 
     @stage
     def save_data(self):
-        self.message(f'Experiment complete! Total score: {self.total_score}', tip_text="saving data...", space=False)
+        self.message(f'Experiment complete! Total score: {self.total_score}', tip_text="saving data...", select=False)
         psychopy.logging.flush()
 
         fp = f'{DATA_PATH}/{self.id}.json'
@@ -393,7 +410,7 @@ class Experiment(object):
 
         if self.eyelink:
             self.eyelink.save_data()
-        self.message("Data saved! Please let the experimenter that you've completed the study.", space=True,)
+        self.message("Data saved! Please let the experimenter that you've completed the study.", select=True,)
 
     def emergency_save_data(self):
         logging.warning('emergency save data')
@@ -402,10 +419,9 @@ class Experiment(object):
             f.write(str(self.all_data))
         logging.info('wrote %s', fp)
 
-# Running the Experiment
-if __name__ == "__main__":
 
-    experiment = Experiment(config_number=1, full_screen=True, n_trial=2)
+if __name__ == "__main__":
+    experiment = Experiment( full_screen=False, n_trial=2)
     experiment.intro()
     experiment.run_main()
     experiment.save_data()

@@ -12,7 +12,6 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
     tooltip = _translate(
         "Counterbalance Routine: use the Shelf to choose a value taking into account previous runs of this experiment."
     )
-    beta = True
 
     def __init__(
             self, exp, name='counterbalance',
