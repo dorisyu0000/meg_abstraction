@@ -17,8 +17,8 @@ from copy import deepcopy
 from config import VERSION
 import os
 
-DATA_PATH = f'data/exp/{VERSION}'
-SURVEY_PATH = f'data/survey'
+DATA_PATH = f'output/exp/{VERSION}'
+SURVEY_PATH = f'output/survey'
 CONFIG_PATH = f'config/{VERSION}'
 
 LOG_PATH = 'log'

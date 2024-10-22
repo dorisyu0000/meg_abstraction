@@ -1,4 +1,4 @@
 # Ignore data, log, and psycho-log folders
-data/
+output/
 log/
 psycho-log/

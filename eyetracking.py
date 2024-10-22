@@ -221,7 +221,7 @@ class EyeLink(object):
 
         # Set up a folder to store the EDF data files and the associated resources
         # e.g., files defining the interest areas used in each trial
-        results_folder = 'data/eyelink'
+        results_folder = 'output/eyelink'
         if not os.path.exists(results_folder):
             os.makedirs(results_folder)
 
