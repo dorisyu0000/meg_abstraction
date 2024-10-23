@@ -61,19 +61,18 @@ class GridWorld:
         self.mask.setAutoDraw(False)
         self.score_text = visual.TextStim(self.win, text=f"Score: {self.score}", pos=(0.5, 0.85), height=0.05, color='black', bold=True)
 
-        self.reveal_initial_red_tile(start)  # Reveal one red tile at the start
+         # Reveal one red tile at the start
         self.done = False
         self.red_revealed = 1
         self.total_reveald = 1
         self.total_red = sum([sum([1 for cell in row if cell['value'] == 1]) for row in self.grid])
         self.done_message = done_message
-
         self.data = {
             "trial": {
                 "kind": self.__class__.__name__,
                 "rule": self.rule,
                 "trial_number": self.trial_number,
-                "grid": self.grid_code ,
+                "grid": self.grid_code,
                 "score": self.score,
                 "total_reveal": self.total_reveald,
                 "start": start,
@@ -82,6 +81,7 @@ class GridWorld:
             "flips": [],
             "key": [],
         }
+        self.reveal_initial_red_tile(start) 
     
     def log(self, event, info={}):
         time = core.getTime()

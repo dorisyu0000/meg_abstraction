@@ -82,22 +82,22 @@ class Experiment(object):
         self.survey = None
         self.data = []
         self.block_size = block_size
-        if n_trial is None:
-            self.n_trial = len(self.trials['main'])
-        else:
-            self.n_trial = n_trial
+        
         timestamp = datetime.now().strftime('%y-%m-%d-%H%M')
         timestamp = datetime.now().strftime('%y-%m-%d-%H%M')
         self.id = f'{timestamp}_P{config_number}'
         if name:
             self.id += '-' + str(name)
-
         self.setup_logging()
         logging.info('git SHA: ' + subprocess.getoutput('git rev-parse HEAD'))
         config_file = f'{CONFIG_PATH}/{config_number}.json'
         with open(config_file) as f:
             conf = json.load(f)
             self.trials = conf['trials']
+        if n_trial is None:
+            self.n_trial = len(self.trials['main'])
+        else:
+            self.n_trial = n_trial
         # self.parameters.update(kws)
         # logging.info('parameters %s', self.parameters)
 
@@ -227,6 +227,7 @@ class Experiment(object):
                 grid_world.draw_grid()
                 # self.win.flip()
                 break
+
     def teach_select(self, grid_world, instruction):
         """ Guide the user to select a tile. """
         self.message(instruction, select=False)  # Show the instruction without waiting for select key 
@@ -302,6 +303,7 @@ class Experiment(object):
                 print(prm)
                 self.win.clearBuffer()
                 gw = GridWorld(win=self.win,done_message=self.done_message, **prm)
+                print(gw.data)
                 gw.run()
                 psychopy.logging.flush()
                 self.trial_data.append(gw.data)
@@ -418,10 +420,3 @@ class Experiment(object):
         with open(fp, 'w') as f:
             f.write(str(self.all_data))
         logging.info('wrote %s', fp)
-
-
-if __name__ == "__main__":
-    experiment = Experiment( full_screen=False, n_trial=2)
-    experiment.intro()
-    experiment.run_main()
-    experiment.save_data()
