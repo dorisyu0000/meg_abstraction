@@ -279,8 +279,8 @@ class Experiment(object):
         self.teach_move(grid_world, KEY_LEFT, f"Good! Now press the {KEY_LEFT} key to move left.")
 
         # Teach how to select a tile
-        self.teach_select(grid_world, f"Awesome! Now press the {KEY_UP} key  and {KEY_DOWN} at the same time to reveal the current tile.")
-        self.message("You will get 1 point for each red tiles, and lost 1 point for each white tile you reveald. The score showing on top of the grids",tip_text = "Reveal all the red tiles to continue.")
+        self.teach_select(grid_world, f"Awesome! Now press the key {KEY_UP} and key {KEY_DOWN} at the same time to reveal the current tile.")
+        self.message("You will get 1 point for each red tiles, and lost 1 point for each white tile you reveald. The score showing on top of the grids", tip_text = "Reveal all the red tiles to continue.")
 
         grid_world.run()
         # Final instruction
@@ -382,7 +382,7 @@ class Experiment(object):
 
             if self.trial_index < self.n_trial:  # Avoid break if this is the last block
                 self.message(
-                    f"You have completed Block {block + 1}/{total_blocks}. Take a break. Please tell the experimenter if you are ready to the next block.",
+                    f"You have completed Block {block + 1} out of {total_blocks} blocks. Take a break. Please tell the experimenter if you are ready to the next block.",
                     select=False
                 )
                 keys = event.waitKeys(keyList=[KEY_CONTINUE, KEY_ABORT])

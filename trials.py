@@ -60,7 +60,8 @@ class GridWorld:
         self._tip = visual.TextBox2(self.win, '', pos=(0, 0.4), color='black', autoDraw=True, size=(0.65, None), letterHeight=.025, anchor='center')
         self.mask = visual.Rect(win, width=2, height=2, fillColor='white', opacity=0)
         self.mask.setAutoDraw(False)
-        self.score_text = visual.TextStim(self.win, text=f"Score: {self.score}", pos=(0.5, 0.85), height=0.05, color='black', bold=True)
+        
+        self.score_text = visual.TextStim(self.win, text=f"Score: {self.score}", pos=(0.7, 0.85), height=0.08, color='black', bold=True)
 
          # Reveal one red tile at the start
         self.done = False
@@ -273,10 +274,10 @@ class GridWorld:
     
 
     def message(self, msg, space=False, tip_text=None):
-        y_pos = (self.n * (self.tile_size + self.gap)) / 2 + 0.1
+        y_pos = (self.n * (self.tile_size + self.gap)) / 2 + 0.05
         logging.debug('message: %s (%s)', msg, tip_text)
         self.show_message()
-        visual.TextBox2(self.win, msg,pos = (0,y_pos), color='black', letterHeight=.035).draw()
+        visual.TextBox2(self.win, msg,pos = (0.35,y_pos), color='black', letterHeight=.05).draw()
         self._tip.setText(tip_text if tip_text else 'press space to continue' if space else '')
         # self.win.flip()
         if space:
