@@ -9,7 +9,7 @@ from psychopy.tools.filetools import fromFile, toFile
 import logging 
 import numpy as np
 from graphics import Graphics 
-from config import KEY_DOWN, KEY_RIGHT, KEY_SELECT, KEY_ABORT, KEY_CONTINUE, COLOR_HIGHTLIGHT 
+from config import KEY_DOWN,KEY_LEFT,KEY_UP ,KEY_RIGHT, KEY_SELECT, KEY_ABORT, KEY_CONTINUE, COLOR_HIGHTLIGHT 
 from util import jsonify
 
 
@@ -22,7 +22,7 @@ TRIGGERS = {
 
 
 class GridWorld:
-    def __init__(self, win, grid, start,n,trial_number,done_message, rule = 'defualt', full_screen=False, tile_size=0.1, eyelink=None, triggers=None, score=0):
+    def __init__(self, win, grid, start,n,trial_number,trial_index,trial_block, done_message, rule = 'defualt', full_screen=False, tile_size=0.1, eyelink=None, triggers=None, score=0):
         """
         Initialize the grid world with a predefined grid.
         Parameters:
@@ -44,6 +44,7 @@ class GridWorld:
         self.eyelink = eyelink
         self.win = win
         self.n = n
+        self.press_tol = 0.1
         self.gap = 0.001  # Gap between each tile
         self.tile_size = tile_size
         self.grid_code = grid  # Store the provided grid
@@ -76,6 +77,8 @@ class GridWorld:
                 "score": self.score,
                 "total_reveal": self.total_reveald,
                 "start": start,
+                "trial_index": trial_index,
+                "trial_block": trial_block,
             },
             "events": [],
             "flips": [],
@@ -289,34 +292,34 @@ class GridWorld:
             self.message(f'Score: {self.score}')
             self.win.flip()
 
-            # Get key input
+            # Get key input and check for combinations
             keys = event.getKeys()
 
-            # Handle movement only for KEY_DOWN and KEY_RIGHT
-            if KEY_DOWN in keys:
-                self.log('move', {'direction': 'down'})
-                # Check if we are at the bottom boundary, wrap around to the top
-                if self.current_pos[0] == self.n - 1:  # Bottom of the grid (y-axis)
-                    self.current_pos[0] = 0  # Wrap to top
-                else:
-                    self.move_cursor('down')  # Normal move down
-
-            elif KEY_RIGHT in keys:
-                self.log('move', {'direction': 'right'})
-                # Check if we are at the right boundary, wrap around to the left
-                if self.current_pos[1] == self.n - 1:  # Rightmost side (x-axis)
-                    self.current_pos[1] = 0  # Wrap to the left
-                else:
-                    self.move_cursor('right')  # Normal move right
-
-            # Handle tile reveal
-            elif KEY_SELECT in keys:
-                self.reveal_tile()
+            # Handle movement and selection when all movement keys are pressed at the same time
+            if set([KEY_UP, KEY_DOWN]).issubset(keys):
+                # All movement keys pressed simultaneously: select the current tile
+                self.log('select', {'pos': self.current_pos})
+                self.reveal_tile()  # Reveal the current highlighted tile
                 if self.red_revealed == self.total_red:
                     self.log('done')
 
+            else:
+                # Handle individual movement for each key
+                if KEY_UP in keys:
+                    self.log('move', {'direction': 'up'})
+                    self.move_cursor('up')
+                if KEY_DOWN in keys:
+                    self.log('move', {'direction': 'down'})
+                    self.move_cursor('down')
+                if KEY_LEFT in keys:
+                    self.log('move', {'direction': 'left'})
+                    self.move_cursor('left')
+                if KEY_RIGHT in keys:
+                    self.log('move', {'direction': 'right'})
+                    self.move_cursor('right')
+
             # Check if all red tiles are revealed
-            elif self.red_revealed >= self.total_red:
+            if self.red_revealed >= self.total_red:
                 self.draw_full_grid()
                 self.center_message(f'{self.done_message}')
                 self.done_time = core.getTime()
@@ -327,7 +330,7 @@ class GridWorld:
                 self.done = True
 
             # Handle abort case
-            elif KEY_ABORT in keys:
+            if KEY_ABORT in keys:
                 logging.info("Abort key pressed. Exiting the game.")
                 self.done = True
                 self.status = 'abort'
@@ -335,6 +338,7 @@ class GridWorld:
         # Clean up and finish
         self.hide_message()
         self.fade_out()
+
 
         
 
