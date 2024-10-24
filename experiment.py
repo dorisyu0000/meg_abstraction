@@ -243,7 +243,7 @@ class Experiment(object):
 
             # Capture key input
             keys = event.getKeys()
-            if set([KEY_UP, KEY_DOWN]).issubset(keys):
+            if set([KEY_UP, KEY_DOWN,KEY_RIGHT]).issubset(keys):
                 # Reveal the current tile
                 grid_world.reveal_tile()
                 grid_world.draw_grid()
@@ -279,7 +279,7 @@ class Experiment(object):
         self.teach_move(grid_world, KEY_LEFT, f"Good! Now press the {KEY_LEFT} key to move left.")
 
         # Teach how to select a tile
-        self.teach_select(grid_world, f"Awesome! Now press the key {KEY_UP} and key {KEY_DOWN} at the same time to reveal the current tile.")
+        self.teach_select(grid_world, f"Awesome! Now press the key {KEY_UP}, key {KEY_DOWN}, and key {KEY_RIGHT} at the same time to reveal the current tile.")
         self.message("You will get 1 point for each red tiles, and lost 1 point for each white tile you reveald. The score showing on top of the grids", tip_text = "Reveal all the red tiles to continue.")
 
         grid_world.run()

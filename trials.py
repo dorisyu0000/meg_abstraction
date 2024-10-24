@@ -297,7 +297,7 @@ class GridWorld:
             keys = event.getKeys()
 
             # Handle movement and selection when all movement keys are pressed at the same time
-            if set([KEY_UP, KEY_DOWN]).issubset(keys):
+            if set([KEY_UP, KEY_DOWN,KEY_RIGHT]).issubset(keys):
                 # All movement keys pressed simultaneously: select the current tile
                 self.log('select', {'pos': self.current_pos})
                 self.reveal_tile()  # Reveal the current highlighted tile
