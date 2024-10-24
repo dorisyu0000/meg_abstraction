@@ -297,27 +297,24 @@ class GridWorld:
             keys = event.getKeys()
 
             # Handle movement and selection when all movement keys are pressed at the same time
-            if set([KEY_UP, KEY_DOWN,KEY_RIGHT]).issubset(keys):
-                # All movement keys pressed simultaneously: select the current tile
-                self.log('select', {'pos': self.current_pos})
-                self.reveal_tile()  # Reveal the current highlighted tile
+            if KEY_DOWN in keys:
+                self.log('move', {'direction': 'down'})
+                # Check if we are at the bottom boundary, wrap around to the top
+                if self.current_pos[0] == self.n - 1:  # Bottom of the grid (y-axis)
+                    self.current_pos[0] = 0  # Wrap to top
+                else:
+                    self.move_cursor('down')  # Normal move down
+            if KEY_LEFT in keys:
+                self.log('move', {'direction': 'left'})
+                self.move_cursor('left')
+            if KEY_RIGHT in keys:
+                self.log('move', {'direction': 'right'})
+                self.move_cursor('right')
+                        # Handle tile reveal
+            elif KEY_SELECT in keys:
+                self.reveal_tile()
                 if self.red_revealed == self.total_red:
                     self.log('done')
-
-            else:
-                # Handle individual movement for each key
-                if KEY_UP in keys:
-                    self.log('move', {'direction': 'up'})
-                    self.move_cursor('up')
-                if KEY_DOWN in keys:
-                    self.log('move', {'direction': 'down'})
-                    self.move_cursor('down')
-                if KEY_LEFT in keys:
-                    self.log('move', {'direction': 'left'})
-                    self.move_cursor('left')
-                if KEY_RIGHT in keys:
-                    self.log('move', {'direction': 'right'})
-                    self.move_cursor('right')
 
             # Check if all red tiles are revealed
             if self.red_revealed >= self.total_red:

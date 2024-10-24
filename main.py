@@ -16,4 +16,4 @@ def main(continue_main=None):
 
     
 if __name__ == '__main__':
-     Fire(main)
+    Fire(main)
