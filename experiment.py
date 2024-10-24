@@ -11,7 +11,7 @@ from trials import GridWorld
 from config import KEY_DOWN,KEY_UP,KEY_LEFT, KEY_RIGHT, KEY_SELECT, KEY_ABORT, KEY_CONTINUE, COLOR_RED, COLOR_BLUE, COLOR_GREY, COLOR_HIGHTLIGHT
 from util import jsonify
 
-
+from triggers import Triggers
 import subprocess
 from copy import deepcopy
 from config import VERSION
@@ -73,7 +73,7 @@ def get_next_config_number():
 class AbortKeyPressed(Exception): pass
 
 class Experiment(object):
-    def __init__(self, config_number = None, block_size = 10,name=None, full_screen=False,n_trial = None, **kws):
+    def __init__(self, config_number = None, block_size = 10,test_mode=False,name=None, full_screen=False,n_trial = None, **kws):
         if config_number is None:
             config_number = get_next_config_number()
         self.name = name
@@ -127,6 +127,7 @@ class Experiment(object):
         # self._practice_trials = iter(self.trials['practice'])
         self.trial_data = []
         self.practice_data = []
+        self.triggers = self.triggers = Triggers(**({'port': 'dummy'} if test_mode else {}))
 
     def setup_logging(self):
 
@@ -255,7 +256,7 @@ class Experiment(object):
         """ Show intro instructions and allow user to practice moving the cursor. """
         self.message('Welcome!', select=True)
         self.message('In this game, you will select squares in a grid to get points.', select=True)
-        self.message('Your goal is to uncover all the red tiles while uncovering as few blue tiles as possible.', select=True)
+        self.message('Your goal is to uncover all the red tiles while uncovering as few white tiles as possible.', select=True)
 
         # Load a sample practice grid for movement demonstration
         sample_grid = [
@@ -284,7 +285,7 @@ class Experiment(object):
 
         grid_world.run()
         # Final instruction
-        self.message(f"You have completed the practice! Press {KEY_CONTINUE} to continue.", select=True)
+        self.message(f"You have completed the practice! Let the experimenter know that you are ready to continue.", select=True)
         self.message(f"Now you will start the main game. You have total {self.n_trial} trials. Good luck!", select=True)
 
     

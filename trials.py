@@ -14,15 +14,15 @@ from util import jsonify
 
 
 TRIGGERS = {
-    'show graph': 0,
-    'show grid': 1,
+    'start': 0,
+    'reveal': 1,
     'move': 2,
     'done': 3,
 }
 
 
 class GridWorld:
-    def __init__(self, win, grid, start,n,trial_number,trial_index,trial_block, done_message, rule = 'defualt', full_screen=False, tile_size=0.1, eyelink=None, triggers=None, score=0):
+    def __init__(self, win, grid, start,n,trial_number,trial_index,trial_block, done_message, rule = 'defualt', triggers=None, full_screen=False, tile_size=0.1, eyelink=None, score=0):
         """
         Initialize the grid world with a predefined grid.
         Parameters:
@@ -86,6 +86,8 @@ class GridWorld:
             "key": [],
         }
         self.reveal_initial_red_tile(start) 
+        if self.triggers and event in TRIGGERS:
+            self.triggers.send(TRIGGERS[event])
     
     def log(self, event, info={}):
         time = core.getTime()
@@ -267,7 +269,7 @@ class GridWorld:
         y_pos = (self.n * (self.tile_size + self.gap)) / 2 + 0.05
         logging.debug('message: %s (%s)', msg, tip_text)
         self.show_message()
-        visual.TextBox2(self.win, msg,pos = (0.3,y_pos), color='black', letterHeight=.05).draw()
+        visual.TextBox2(self.win, msg,pos = (0.25,y_pos), color='black', letterHeight=.05).draw()
         self._tip.setText(tip_text if tip_text else 'press space to continue' if space else '')
         # self.win.flip()
         if space:
