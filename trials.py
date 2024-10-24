@@ -180,17 +180,7 @@ class GridWorld:
                 self.grid[x][y]['rect'].fillColor = 'red'
                 self.grid[x][y]['revealed'] = True
 
-    def move_cursor(self, direction):
-        """ Move the cursor based on key input. """
-        if direction == 'up' and self.current_pos[0] > 0:
-            self.current_pos[0] -= 1  # Move up (decrease row index)
-        elif direction == 'down' and self.current_pos[0] < self.n - 1:
-            self.current_pos[0] += 1  # Move down (increase row index)
-        elif direction == 'left' and self.current_pos[1] > 0:
-            self.current_pos[1] -= 1  # Move left (decrease column index)
-        elif direction == 'right' and self.current_pos[1] < self.n - 1:
-            self.current_pos[1] += 1  # Move right (increase column index)
-
+    
     def highlight_tile(self):
         """ Highlight the currently selected tile by changing the line color and width. """
         for i in range(self.n):
@@ -277,13 +267,33 @@ class GridWorld:
         y_pos = (self.n * (self.tile_size + self.gap)) / 2 + 0.05
         logging.debug('message: %s (%s)', msg, tip_text)
         self.show_message()
-        visual.TextBox2(self.win, msg,pos = (0.35,y_pos), color='black', letterHeight=.05).draw()
+        visual.TextBox2(self.win, msg,pos = (0.3,y_pos), color='black', letterHeight=.05).draw()
         self._tip.setText(tip_text if tip_text else 'press space to continue' if space else '')
         # self.win.flip()
         if space:
             event.waitKeys(keyList=KEY_SELECT)
 
-    
+    def move_cursor(self, direction):
+        """ Move the cursor based on key input. """
+        if direction == 'up' and self.current_pos[0] > 0:
+            self.current_pos[0] -= 1  # Move up (decrease row index)
+        elif direction == 'down':
+            if self.current_pos[0] == self.n - 1:  # Bottom of the grid (y-axis)
+                self.current_pos[0] = 0
+            else: 
+                self.current_pos[0] += 1
+        elif direction == 'left':
+            if self.current_pos[1] == 0:
+                self.current_pos[1] = self.n - 1
+            else:
+                self.current_pos[1] -= 1  # Move left (decrease column index)
+        elif direction == 'right':
+            if self.current_pos[1] == self.n - 1:
+                self.current_pos[1] = 0
+            else:
+                self.current_pos[1] += 1  # Move right (increase column index)
+
+
     def run(self):
         """ Main loop to run the grid world. """
         while not self.done:
@@ -299,18 +309,13 @@ class GridWorld:
             # Handle movement and selection when all movement keys are pressed at the same time
             if KEY_DOWN in keys:
                 self.log('move', {'direction': 'down'})
-                # Check if we are at the bottom boundary, wrap around to the top
-                if self.current_pos[0] == self.n - 1:  # Bottom of the grid (y-axis)
-                    self.current_pos[0] = 0  # Wrap to top
-                else:
-                    self.move_cursor('down')  # Normal move down
+                self.move_cursor('down')  # Normal move down
             if KEY_LEFT in keys:
                 self.log('move', {'direction': 'left'})
                 self.move_cursor('left')
             if KEY_RIGHT in keys:
                 self.log('move', {'direction': 'right'})
                 self.move_cursor('right')
-                        # Handle tile reveal
             elif KEY_SELECT in keys:
                 self.reveal_tile()
                 if self.red_revealed == self.total_red:

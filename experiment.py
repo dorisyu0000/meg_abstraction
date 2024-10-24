@@ -243,7 +243,7 @@ class Experiment(object):
 
             # Capture key input
             keys = event.getKeys()
-            if set([KEY_UP, KEY_DOWN,KEY_RIGHT]).issubset(keys):
+            if KEY_SELECT in keys:
                 # Reveal the current tile
                 grid_world.reveal_tile()
                 grid_world.draw_grid()
@@ -273,13 +273,13 @@ class Experiment(object):
         self.win.flip()
 
         # Guide the user through the movement steps
-        self.teach_move(grid_world, KEY_DOWN, f"Your current location is highlighted in yellow. Use the {KEY_DOWN} key to move the highlighted square up.")
-        self.teach_move(grid_world, KEY_UP, f"Good! Now press the {KEY_UP} key to move down.")
+        self.teach_move(grid_world, KEY_DOWN, f"Your current location is highlighted in yellow. Use the {KEY_DOWN} key to move the highlighted square down.")
+        # self.teach_move(grid_world, KEY_UP, f"Good! Now press the {KEY_UP} key to move down.")
         self.teach_move(grid_world, KEY_RIGHT, f"Good! Now press the {KEY_RIGHT} key to move right.")
         self.teach_move(grid_world, KEY_LEFT, f"Good! Now press the {KEY_LEFT} key to move left.")
-
-        # Teach how to select a tile
-        self.teach_select(grid_world, f"Awesome! Now press the key {KEY_UP}, key {KEY_DOWN}, and key {KEY_RIGHT} at the same time to reveal the current tile.")
+        self.teach_move(grid_world, KEY_DOWN, f"If you press the key {KEY_DOWN} again.")
+        self.teach_move(grid_world, KEY_DOWN, f"When you hit the boundary, it will start from the righ. Now press the {KEY_DOWN} key to move to the other side.")
+        self.teach_select(grid_world, f"Awesome! Now press the key {KEY_SELECT} to reveal the current tile.")
         self.message("You will get 1 point for each red tiles, and lost 1 point for each white tile you reveald. The score showing on top of the grids", tip_text = "Reveal all the red tiles to continue.")
 
         grid_world.run()
