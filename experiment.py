@@ -73,7 +73,7 @@ def get_next_config_number():
 class AbortKeyPressed(Exception): pass
 
 class Experiment(object):
-    def __init__(self, config_number = None, block_size = 10,test_mode=False,name=None, full_screen=False,n_trial = None, **kws):
+    def __init__(self, config_number = None, block_size = 10,test_mode=True,name=None, full_screen=False,n_trial = None, **kws):
         if config_number is None:
             config_number = get_next_config_number()
         self.name = name
@@ -254,6 +254,7 @@ class Experiment(object):
     @stage
     def intro(self):
         """ Show intro instructions and allow user to practice moving the cursor. """
+        self.triggers.send(4)
         self.message('Welcome!', select=True)
         self.message('In this game, you will select squares in a grid to get points.', select=True)
         self.message('Your goal is to uncover all the red tiles while uncovering as few white tiles as possible.', select=True)
@@ -308,7 +309,7 @@ class Experiment(object):
                 prm = {**trial}
                 print(prm)
                 self.win.clearBuffer()
-                gw = GridWorld(win=self.win,done_message=self.done_message, **prm)
+                gw = GridWorld(win=self.win,done_message=self.done_message,triggers=self.triggers, **prm)
 
                 print(gw.data)
                 gw.run()
@@ -362,13 +363,12 @@ class Experiment(object):
             block_end_trial = min(block_start_trial + self.block_size, self.n_trial)
             for trial_index in range(block_start_trial, block_end_trial):
                 logging.info(f"Running trial {trial_index + 1}/{self.n_trial}")
-
                 trial = self.trials['main'][trial_index]  # Get the trial data
                 prm = {**trial}
-                gw = GridWorld(win=self.win, trial_index = trial_index,trial_block = block, done_message=self.done_message, **prm)
-
+                gw = GridWorld(win=self.win, trial_index = trial_index,trial_block = block, done_message=self.done_message,triggers=self.triggers, **prm)
                 # Run the trial
                 gw.run()
+                print(self.triggers)
                 psychopy.logging.flush()
                 self.trial_data.append(gw.data)
 

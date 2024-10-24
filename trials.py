@@ -12,6 +12,7 @@ from graphics import Graphics
 from config import KEY_DOWN,KEY_LEFT,KEY_UP ,KEY_RIGHT, KEY_SELECT, KEY_ABORT, KEY_CONTINUE, COLOR_HIGHTLIGHT 
 from util import jsonify
 
+from triggers import Triggers
 
 TRIGGERS = {
     'start': 0,
@@ -86,8 +87,7 @@ class GridWorld:
             "key": [],
         }
         self.reveal_initial_red_tile(start) 
-        if self.triggers and event in TRIGGERS:
-            self.triggers.send(TRIGGERS[event])
+
     
     def log(self, event, info={}):
         time = core.getTime()
@@ -97,6 +97,11 @@ class GridWorld:
             'event': event,
             **info
         }
+        print("event", event)
+        print("TRIGGERS", TRIGGERS)
+        if self.triggers and event in TRIGGERS:
+            self.triggers.send(TRIGGERS[event])
+        print("triggers", self.triggers)
         self.data["events"].append(datum)
         
     
@@ -173,6 +178,8 @@ class GridWorld:
             self.grid[i][j]['rect'].fillColor = 'red'
             self.grid[i][j]['revealed'] = True
             self.log('start', {'color': 'red', 'pos': start_pos})
+            
+            print(self.triggers)
         else:
             # Fallback: Reveal a random red tile if the start position is not red
             red_tiles = [(x, y) for x in range(self.n) for y in range(self.n) if self.grid[x][y]['value'] == 1]
