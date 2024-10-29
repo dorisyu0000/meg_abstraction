@@ -58,8 +58,8 @@ class GridWorld:
         self.gfx = Graphics(win)
         self.triggers = triggers
 
-        self._message = visual.TextBox2(self.win, '', pos=(0.2, 0.42), color='black', autoDraw=True, size=(0.75, None), letterHeight=.035, anchor='center')
-        self._tip = visual.TextBox2(self.win, '', pos=(0.2, 0.4), color='black', autoDraw=True, size=(0.65, None), letterHeight=.025, anchor='center')
+        self._message = visual.TextBox2(self.win, '', pos=(0.3, 0.42), color='black', autoDraw=True, size=(0.75, None), letterHeight=.035, anchor='center')
+        self._tip = visual.TextBox2(self.win, '', pos=(0.3, 0.4), color='black', autoDraw=True, size=(0.65, None), letterHeight=.025, anchor='center')
         self.mask = visual.Rect(win, width=2, height=2, fillColor='white', opacity=0)
         self.mask.setAutoDraw(False)
         

@@ -73,7 +73,7 @@ def get_next_config_number():
 class AbortKeyPressed(Exception): pass
 
 class Experiment(object):
-    def __init__(self, config_number = None, block_size = 10,test_mode=True,name=None, full_screen=False,continue_trial = None, n_trial = None, **kws):
+    def __init__(self, config_number = None, block_size = 10,test_mode=False,name=None, full_screen=False,continue_trial = None, n_trial = None, **kws):
         if config_number is None and continue_trial is None:
             config_number = get_next_config_number()
         elif continue_trial is not None:
