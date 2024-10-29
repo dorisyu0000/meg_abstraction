@@ -3,7 +3,7 @@ from fire import Fire
 import logging
 import random
 
-def main(continue_main=None):
+def main(continue_main=None ):
     if continue_main == None :
         experiment = Experiment(full_screen=False, n_trial=120)
         experiment.intro()
@@ -11,7 +11,7 @@ def main(continue_main=None):
         experiment.save_data()
     else:
         experiment = Experiment(full_screen=False)
-        experiment.run_blocks(start_block = continue_main)
+        experiment.run_blocks(start_block = 1)
         experiment.save_data()
 
     
