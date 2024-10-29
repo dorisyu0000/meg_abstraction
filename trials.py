@@ -201,7 +201,7 @@ class GridWorld:
                     self.grid[i][j]['rect'].lineWidth = 6  # Increase the line width to make it stand out
                 else:
                     # Reset others: Only reset if they are not revealed yet
-                    self.grid[i][j]['rect'].lineColor = 'grey'  # Reset the line color for unselected tiles
+                    self.grid[i][j]['rect'].lineColor = 'white'  # Reset the line color for unselected tiles
                     self.grid[i][j]['rect'].lineWidth = 1  # Reset line width to default
 
     def reveal_tile(self):

@@ -280,17 +280,17 @@ class Experiment(object):
         # Guide the user through the movement steps
         self.teach_move(grid_world, KEY_DOWN, f"Your current location is highlighted in yellow. Use the {KEY_DOWN} key to move the highlighted square down.")
         # self.teach_move(grid_world, KEY_UP, f"Good! Now press the {KEY_UP} key to move down.")
-        self.teach_move(grid_world, KEY_RIGHT, f"Good! Now press the {KEY_RIGHT} key to move right.")
-        self.teach_move(grid_world, KEY_LEFT, f"Good! Now press the {KEY_LEFT} key to move left.")
-        self.teach_move(grid_world, KEY_DOWN, f"If you press the key {KEY_DOWN} again.")
-        self.teach_move(grid_world, KEY_DOWN, f"When you hit the boundary, it will start from the righ. Now press the {KEY_DOWN} key to move to the other side.")
-        self.teach_select(grid_world, f"Awesome! Now press the key {KEY_SELECT} to reveal the current tile.")
+        self.teach_move(grid_world, KEY_RIGHT, f"Good! Now press the KEY {KEY_RIGHT} to move right.")
+        self.teach_move(grid_world, KEY_LEFT, f"Good! Now press the KEY {KEY_LEFT} to move left.")
+        self.teach_move(grid_world, KEY_DOWN, f"If you press the KEY {KEY_DOWN} again.")
+        self.teach_move(grid_world, KEY_DOWN, f"When you hit the boundary, it will start from the righ. Now press the KEY {KEY_DOWN}  to move to the other side.")
+        self.teach_select(grid_world, f"Awesome! Now press the KEY {KEY_SELECT} to reveal the current tile.")
         self.message("You will get 1 point for each red tiles, and lost 1 point for each white tile you reveald. The score showing on top of the grids", tip_text = "Reveal all the red tiles to continue.")
 
         grid_world.run()
         # Final instruction
         self.message(f"You have completed the practice! Let the experimenter know that you are ready to continue.", select=True)
-        self.message(f"Now you will start the main game. You have total {self.n_trial} trials. Good luck!", select=True)
+        self.message(f"Now you will start the main game. You have total {self.n_trial} trials with {self.block_size} trials per block. Good luck!", select=True)
 
     
     @stage
