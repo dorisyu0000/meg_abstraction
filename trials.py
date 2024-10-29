@@ -16,9 +16,10 @@ from triggers import Triggers
 
 TRIGGERS = {
     'start': 0,
-    'reveal': 1,
-    'move': 2,
-    'done': 3,
+    'move': 1,
+    'reveal_red': 2,
+    'reveal_white': 3,
+    'done': 4,
 }
 
 
@@ -57,8 +58,8 @@ class GridWorld:
         self.gfx = Graphics(win)
         self.triggers = triggers
 
-        self._message = visual.TextBox2(self.win, '', pos=(0, 0.42), color='black', autoDraw=True, size=(0.75, None), letterHeight=.035, anchor='center')
-        self._tip = visual.TextBox2(self.win, '', pos=(0, 0.4), color='black', autoDraw=True, size=(0.65, None), letterHeight=.025, anchor='center')
+        self._message = visual.TextBox2(self.win, '', pos=(0.2, 0.42), color='black', autoDraw=True, size=(0.75, None), letterHeight=.035, anchor='center')
+        self._tip = visual.TextBox2(self.win, '', pos=(0.2, 0.4), color='black', autoDraw=True, size=(0.65, None), letterHeight=.025, anchor='center')
         self.mask = visual.Rect(win, width=2, height=2, fillColor='white', opacity=0)
         self.mask.setAutoDraw(False)
         
@@ -83,8 +84,8 @@ class GridWorld:
                 "trial_block": trial_block,
             },
             "events": [],
-            "flips": [],
-            "key": [],
+            "white_tiles": [],
+            "red_tiles": [],
         }
         self.reveal_initial_red_tile(start) 
 
@@ -172,6 +173,7 @@ class GridWorld:
     def reveal_initial_red_tile(self, start_pos):
         """ Reveal the tile at the start_pos if it is red, otherwise pick a random red tile. """
         i, j = start_pos
+        self.data["red_tiles"].append(start_pos)
         # Check if the start position is valid and contains a red tile
         if 0 <= i < self.n and 0 <= j < self.n and self.grid[i][j]['value'] == 1:
             # Reveal the red tile at the start position
@@ -184,7 +186,6 @@ class GridWorld:
             # Fallback: Reveal a random red tile if the start position is not red
             red_tiles = [(x, y) for x in range(self.n) for y in range(self.n) if self.grid[x][y]['value'] == 1]
             if red_tiles:
-               
                 x, y = random.choice(red_tiles)
                 self.grid[x][y]['rect'].fillColor = 'red'
                 self.grid[x][y]['revealed'] = True
@@ -197,11 +198,11 @@ class GridWorld:
                 if [i, j] == self.current_pos:
                     # Highlight the selected tile by changing line color and making the line thicker
                     self.grid[i][j]['rect'].lineColor = COLOR_HIGHTLIGHT
-                    self.grid[i][j]['rect'].lineWidth = 10  # Increase the line width to make it stand out
+                    self.grid[i][j]['rect'].lineWidth = 6  # Increase the line width to make it stand out
                 else:
                     # Reset others: Only reset if they are not revealed yet
-                    self.grid[i][j]['rect'].lineColor = 'black'  # Reset the line color for unselected tiles
-                    self.grid[i][j]['rect'].lineWidth = .1  # Reset line width to default
+                    self.grid[i][j]['rect'].lineColor = 'grey'  # Reset the line color for unselected tiles
+                    self.grid[i][j]['rect'].lineWidth = 1  # Reset line width to default
 
     def reveal_tile(self):
         """ Reveal the currently highlighted tile. """
@@ -213,6 +214,11 @@ class GridWorld:
             self.log('reveal', {'color': self.grid[i][j]['color'], 'pos': [i, j]})
             if self.grid[i][j]['value'] == 1:
                 self.red_revealed += 1
+                self.data["red_tiles"].append([i, j])
+                self.log('reveal_red', {'pos': [i, j]})
+            else:
+                self.data["white_tiles"].append([i, j])
+                self.log('reveal_white', {'pos': [i, j]})
 
 
     def update_score(self, value):
@@ -335,13 +341,11 @@ class GridWorld:
                 self.draw_full_grid()
                 self.center_message(f'{self.done_message}')
                 self.done_time = core.getTime()
-                self.log('done')
                 core.wait(2)  # Pause for 2 seconds
                 self.win.flip()
                 logging.info("All red tiles revealed. Moving to next trial.")
                 self.done = True
 
-            # Handle abort case
             if KEY_ABORT in keys:
                 logging.info("Abort key pressed. Exiting the game.")
                 self.done = True

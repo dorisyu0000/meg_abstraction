@@ -6,7 +6,7 @@ import random
 def main(continue_main=None):
     if continue_main == None :
         experiment = Experiment(full_screen=False, n_trial=120)
-        # experiment.intro()
+        experiment.intro()
         experiment.run_blocks()
         experiment.save_data()
     else:
