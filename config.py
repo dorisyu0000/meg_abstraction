@@ -1,4 +1,4 @@
-VERSION = "v1"
+VERSION = "v2"
 
 COLOR_RED = "#FF0000"
 COLOR_BLUE = "#0000FF"
@@ -12,3 +12,10 @@ KEY_LEFT = '1'
 KEY_SELECT = '4'
 KEY_CONTINUE = 'c'
 KEY_ABORT = 'q'
+
+KEY_1 = '1'
+KEY_2 = '2'
+KEY_3 = '3'
+COLOR_1 = "red"
+COLOR_2 = "blue"
+COLOR_3 = "green"

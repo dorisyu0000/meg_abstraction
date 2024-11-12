@@ -7,8 +7,8 @@ import psychopy
 from psychopy import core, visual, gui, data, event
 from psychopy.tools.filetools import fromFile, toFile
 import numpy as np
-from trials import GridWorld
-from config import KEY_DOWN,KEY_UP,KEY_LEFT, KEY_RIGHT, KEY_SELECT, KEY_ABORT, KEY_CONTINUE, COLOR_RED, COLOR_BLUE, COLOR_GREY, COLOR_HIGHTLIGHT
+from trials import GridWorld, Locolizer
+from config import KEY_DOWN,KEY_UP,KEY_LEFT, KEY_RIGHT, KEY_SELECT, KEY_ABORT, KEY_CONTINUE, COLOR_RED, COLOR_BLUE, COLOR_GREY, COLOR_HIGHTLIGHT, KEY_1, KEY_2, KEY_3, COLOR_1, COLOR_2, COLOR_3
 from util import jsonify
 
 from triggers import Triggers
@@ -20,7 +20,7 @@ import os
 DATA_PATH = f'output/exp/{VERSION}'
 SURVEY_PATH = f'output/survey'
 CONFIG_PATH = f'config/{VERSION}'
-
+FIG_PATH = f'fig'
 LOG_PATH = 'log'
 PSYCHO_LOG_PATH = 'psycho-log'
 for p in (DATA_PATH, CONFIG_PATH, LOG_PATH, PSYCHO_LOG_PATH, SURVEY_PATH):
@@ -73,7 +73,7 @@ def get_next_config_number():
 class AbortKeyPressed(Exception): pass
 
 class Experiment(object):
-    def __init__(self, config_number = None, block_size = 10,test_mode=False,name=None, full_screen=False,continue_trial = None, n_trial = None, **kws):
+    def __init__(self, config_number = None, block_size = 12,start_main_blocks = None, start_post_blocks = None, test_mode=True,name=None, full_screen=False,continue_trial = None, n_trial = None, **kws):
         if config_number is None and continue_trial is None:
             config_number = get_next_config_number()
         elif continue_trial is not None:
@@ -85,6 +85,11 @@ class Experiment(object):
         self.data = []
         self.block_size = block_size
         self.continue_trial = continue_trial
+        if start_main_blocks is None and start_post_blocks is None:
+            self.start_blocks = 0
+        else:
+            self.start_blocks = start_main_blocks + start_post_blocks
+
         
         timestamp = datetime.now().strftime('%y-%m-%d-%H%M')
         timestamp = datetime.now().strftime('%y-%m-%d-%H%M')
@@ -93,14 +98,21 @@ class Experiment(object):
             self.id += '-' + str(name)
         self.setup_logging()
         logging.info('git SHA: ' + subprocess.getoutput('git rev-parse HEAD'))
+        fig_path = f'{FIG_PATH}/rule_intro.png'
+        with open(fig_path, 'rb') as f:
+            self.rule_intro = f.read()
         config_file = f'{CONFIG_PATH}/{config_number}.json'
         with open(config_file) as f:
             conf = json.load(f)
             self.trials = conf['trials']
         if n_trial is None:
-            self.n_trial = len(self.trials['main'])
+            self.n_trial_main = int(len(self.trials['main']))
         else:
-            self.n_trial = n_trial
+            self.n_trial_main  = n_trial
+        self.rule_index = conf['rule_index']
+        print(self.rule_index)
+        self.n_trial_post = int(len(self.trials['post']))
+        print("self.n_trial_post", self.n_trial_post)
         # self.parameters.update(kws)
         # logging.info('parameters %s', self.parameters)
 
@@ -130,6 +142,7 @@ class Experiment(object):
         # self._practice_trials = iter(self.trials['practice'])
         self.trial_data = []
         self.practice_data = []
+        self.locolizer_data = []
         self.triggers = self.triggers = Triggers(**({'port': 'dummy'} if test_mode else {}))
 
     def setup_logging(self):
@@ -265,11 +278,11 @@ class Experiment(object):
         # Load a sample practice grid for movement demonstration
         sample_grid = [
             [0, 0, 0, 0],
-            [0, 0, 1, 0],
+            [0, 1, 1, 0],
             [0, 1, 1, 0],
             [0, 0, 0, 0]
         ]
-        start_pos = [1, 1]
+        start_pos = [[1, 1]]
         grid_world = GridWorld(win=self.win, grid=sample_grid, n=4, tile_size=0.1, trial_number=0, trial_block='practice', trial_index=0, start=start_pos, done_message='You have found all the tiles!')
 
         # Draw the initial grid
@@ -278,19 +291,44 @@ class Experiment(object):
         self.win.flip()
 
         # Guide the user through the movement steps
-        self.teach_move(grid_world, KEY_DOWN, f"Your current location is highlighted in yellow. Use the {KEY_DOWN} key to move the highlighted square down.")
+        self.teach_move(grid_world, KEY_DOWN, f"Your current location is highlighted. Use the {KEY_DOWN} key to move yourself down.")
         # self.teach_move(grid_world, KEY_UP, f"Good! Now press the {KEY_UP} key to move down.")
-        self.teach_move(grid_world, KEY_RIGHT, f"Good! Now press the KEY {KEY_RIGHT} to move right.")
-        self.teach_move(grid_world, KEY_LEFT, f"Good! Now press the KEY {KEY_LEFT} to move left.")
-        self.teach_move(grid_world, KEY_DOWN, f"If you press the KEY {KEY_DOWN} again.")
-        self.teach_move(grid_world, KEY_DOWN, f"When you hit the boundary, it will start from the righ. Now press the KEY {KEY_DOWN}  to move to the other side.")
-        self.teach_select(grid_world, f"Awesome! Now press the KEY {KEY_SELECT} to reveal the current tile.")
+        self.teach_move(grid_world, KEY_RIGHT, f"Good! Now press the {KEY_RIGHT} key to move right.")
+        self.teach_move(grid_world, KEY_LEFT, f"Good! Now press the {KEY_LEFT} key to move left.")
+        self.teach_move(grid_world, KEY_DOWN, f"If you press the {KEY_DOWN} key again.")
+        self.teach_move(grid_world, KEY_DOWN, f"You will find yourself at the top of the grid. When your hit the boundary, it will start from the other side. Now press the key {KEY_DOWN}.")
+        self.teach_select(grid_world, f"Awesome! Now press the {KEY_SELECT} key to reveal where you are.")
         self.message("You will get 1 point for each red tiles, and lost 1 point for each white tile you reveald. The score showing on top of the grids", tip_text = "Reveal all the red tiles to continue.")
 
         grid_world.run()
         # Final instruction
-        self.message(f"You have completed the practice! Let the experimenter know that you are ready to continue.", select=True)
-        self.message(f"Now you will start the main game. You have total {self.n_trial} trials with {self.block_size} trials per block. Good luck!", select=True)
+        self.message(f"You have completed the practice! If you have any questions about the game, please ask the experimenter.", select=True)
+        
+    @stage
+    def practice_timelimit(self):
+        sample_grid = [
+            [0, 0, 0, 0],
+            [0, 1, 1, 0],
+            [0, 1, 1, 0],
+            [0, 0, 0, 0]
+        ]
+        start_pos = [[1, 1]]
+        gw = GridWorld(win=self.win, grid=sample_grid, n=4, tile_size=0.1, trial_number=0, trial_block='practice', trial_index=0, start=start_pos, time_limit=7, done_message='You have found all the tiles!')
+
+        self.message("To make things more exciting, each round has a time limit.", select=True)
+        gw.draw_grid()
+        gw.draw_timer()
+        gw.timer.setLineColor('#FFC910')
+        gw.timer.setLineWidth(5)
+        gw.win.flip()
+
+        self.message("The time left is indicated by a bar on the right.", select=True)
+        gw.timer.setLineWidth(0)
+        self.message("Let's see what happens when it runs out...", select=False,
+            tip_text='wait for it')
+        gw.run()
+        self.message("If you run out of time, the game will end immediately.", select=True)
+        self.message(f"Now you will start the main game. You have total {self.n_trial_main} trials with {self.block_size} trials per block. Good luck!", select=True)
 
     
     @stage
@@ -301,57 +339,24 @@ class Experiment(object):
             grid_data = trial['grid']
 
 
-    @stage
-    def run_main(self):
-        """ Run through all the main trials. """
-        trials = self.trials['main']
-        print(self.n_trial)
-        for (i, trial) in enumerate(trials):
-            try:
-                logging.info(f"Running trial {self.trial_index + 1}/{self.n_trial}")
-                prm = {**trial}
-                print(prm)
-                self.win.clearBuffer()
-                gw = GridWorld(win=self.win,done_message=self.done_message,triggers=self.triggers, **prm)
-
-                print(gw.data)
-                gw.run()
-                psychopy.logging.flush()
-                self.trial_data.append(gw.data)
-                self.trial_index += 1
-                if self.trial_index == self.n_trial -1:
-                    self.done_message = 'You have completed the experiment!'
-                if self.trial_index >= self.n_trial:
-                    logging.info('All trials completed.')
-                    return
-                else:
-                    self.win.clearBuffer()
-            except:
-                    logging.exception(f"Caught exception in run_main")
-                    self.win.clearAutoDraw()
-                    self.win.showMessage(
-                        'The experiment ran into a problem! Please tell the experimenter.\n'
-                        'Press C to continue or A to abort and save data'
-                        )
-                    self.win.flip()
-                    keys = event.waitKeys(keyList=['c', 'a'])
-                    self.win.showMessage(None)
-                    print('keys are', keys)
-                    if 'c' in keys:
-                        continue
-                    else:
-                        return
+    
 
     @stage
-    def run_blocks(self, start_block=None):
+    def run_blocks(self):
         """
         Run through trials in blocks, with breaks between each block.
         Each block consists of a fixed number of trials (e.g., 10 trials).
         """
+
+        start_block = self.start_blocks
         if start_block is None:
             start_block = 0
+        
 
-        total_blocks = (self.n_trial + self.block_size - 1) // self.block_size  # Calculate total number of blocks
+        total_blocks = (self.n_trial_main + self.block_size - 1) // self.block_size  # Calculate total number of blocks
+        self.main_blocks = total_blocks
+        if self.start_blocks > total_blocks:
+            start_block = total_blocks - 1
 
         # Determine which block to start at (default is 0)
         if start_block >= total_blocks:
@@ -363,30 +368,29 @@ class Experiment(object):
             logging.info(f"Starting block {block + 1}/{total_blocks}")
 
             # Run each trial in the block
-            block_end_trial = min(block_start_trial + self.block_size, self.n_trial)
+            block_end_trial = min(block_start_trial + self.block_size, self.n_trial_main)
             for trial_index in range(block_start_trial, block_end_trial):
-                logging.info(f"Running trial {trial_index + 1}/{self.n_trial}")
+                logging.info(f"Running trial {trial_index + 1}/{self.n_trial_main}")
                 trial = self.trials['main'][trial_index]  # Get the trial data
                 prm = {**trial}
                 gw = GridWorld(win=self.win, trial_index = trial_index,trial_block = block, done_message=self.done_message,triggers=self.triggers, **prm)
                 # Run the trial
                 gw.run()
-                print(self.triggers)
                 psychopy.logging.flush()
                 self.trial_data.append(gw.data)
-
-                self.trial_index += 1
+                self.total_score += gw.data['trial']['score']
+                self.trial_index == trial_index
 
                 # If we've reached the last trial, show the final message
-                if self.trial_index == self.n_trial:
-                    self.done_message = 'You have completed the experiment!'
-                    self.message('You have completed the experiment!', select=True)
-                    logging.info('Experiment completed.')
+                if self.trial_index == self.n_trial_main:
+                    self.done_message = 'You have finished the largest part of the experiment! Please tell the experimenter that you are ready for the next part.'
+                    self.message('You have completed the first part of the experiment!', select=True)
+                    logging.info('Main completed.')
                     return  # Exit after the last trial
 
-            if self.trial_index < self.n_trial:  # Avoid break if this is the last block
+            if self.trial_index < self.n_trial_main:  # Avoid break if this is the last block
                 self.message(
-                    f"You have completed Block {block + 1} out of {total_blocks} blocks. Take a break. Please tell the experimenter if you are ready to the next block.",
+                    f"You have completed Block {block + 1} out of {total_blocks} blocks for the first part of the experiment. Your current score is {self.total_score}. Take a break. Please tell the experimenter if you are ready to the next block.",
                     select=False
                 )
                 keys = event.waitKeys(keyList=[KEY_CONTINUE, KEY_ABORT])
@@ -400,7 +404,84 @@ class Experiment(object):
 
             # Move to the next block of trials
             block_start_trial = block_end_trial
+    
+    @stage
+    def intro_locolizer(self, display=False):
+        rule_intro_image = visual.ImageStim(self.win, image=f'{FIG_PATH}/rule_intro.png')
+        if display: 
+            self.message("This is the example of the rule you need learn.", select=True)
+            rule_intro_image.draw()
+            self.win.flip()
+        else:
+            self.message("Now you will start the second part of the experiment. In this part, the game is a bit different.", select=True)
+        
+            self.message("You see a series of grids with pattern. Those are the examples of the grid from the game you just played.", select=True)
+            self.message("Here is the example of the rules.", select=True)
+            
+            rule_intro_image.draw()
+            self.message("You need to find the rule that generates the pattern on the each row.", select=True)
+            rule_intro_image.draw()
+            self.message("Take your time to think and remeber those patterns, and tell the experimenter the rules you found.", select=True)
+            rule_intro_image.draw()
+            self.win.flip()
+            self.message("In this part, you need to classify the rule that generates the pattern with the partial grids shown.", select=True)
+            trial = self.trials['practice'][0]
+            gw = Locolizer(win=self.win,rule_index = self.rule_index,trial_index = self.trial_index,trial_block = -1,triggers=self.triggers,time_limit=5, **trial)
+            gw.draw_grid()
+            gw.grid_plot()
+            gw.draw_timer()
+            self.message(f"You need to press key {KEY_1}, key {KEY_2}, or key {KEY_3} to make your choice.", select=True)
+            self.message("There is also a time limit for each trial. The time left is indicated by a bar on the right.", select=True)
+            gw.timer.setLineColor('#FFC910')
+            gw.timer.setLineWidth(5)
+            self.message("Your current choice is highlighted. You can always change your choice before the time runs out.", select=True)
+            self.message("MAKE YOUR CHOICE NOW!", select=True)
+            gw.run()
 
+        self.message("Press the space key to continue.", select=True)
+        event.waitKeys(keyList=['space'])
+
+    @stage
+    def run_locolizer(self):
+        # start_block = self.start_blocks - self.main_blocks
+        start_block = 0
+        num_blocks = 3
+        # block_size = 3
+        block_size = self.n_trial_post // num_blocks  # Use floor division
+        block_start_trial = start_block * block_size 
+        total_blocks = start_block + num_blocks
+        trials = self.trials['post']
+
+        for block in range(start_block, total_blocks):
+            block_end_trial = min(block_start_trial + block_size, self.n_trial_post)
+            logging.info(f"Running trial {self.trial_index + 1}/{self.n_trial_post}")
+            for i in range(block_start_trial, block_end_trial):
+                trial = self.trials['post'][i]
+                gw = Locolizer(win=self.win,rule_index = self.rule_index,trial_index = self.trial_index,trial_block = block,triggers=self.triggers, **trial)
+                gw.run()
+                self.trial_index += 1
+                psychopy.logging.flush()
+                self.locolizer_data.append(gw.data)
+                self.total_score += gw.data['locolizer']['score']
+                print("self.total_score", self.total_score)
+            if self.trial_index < self.n_trial_main:  # Avoid break if this is the last block
+                self.message(
+                    f"You have completed Block {block + 1} out of {total_blocks} blocks for the first part of the experiment. Your current score is {self.total_score}. Take a break. Please tell the experimenter if you are ready to the next block.",
+                    select=False
+                )
+
+                keys = event.waitKeys(keyList=[KEY_CONTINUE, KEY_ABORT])
+                
+                if KEY_CONTINUE in keys:
+                    self.hide_message()
+                    
+                if KEY_ABORT in keys:
+                    logging.warning('Experiment aborted by user.')
+                    self.message('Experiment aborted. Exiting...', select=True)
+                    return  # Exit the experiment if the user presses the abort key
+
+            # Move to the next block of trials
+            block_start_trial = block_end_trial
 
 
     @property
@@ -408,6 +489,7 @@ class Experiment(object):
         return {
             'trial_data': self.trial_data,
             'practice_data': self.practice_data,
+            'locolizer_data': self.locolizer_data,
             'window': self.win.size,
         }
 
@@ -434,7 +516,9 @@ class Experiment(object):
 
 
 if __name__ == "__main__":
-    experiment = Experiment(full_screen=False, n_trial=4)
-    experiment.intro()
-    experiment.run_main()
-    experiment.save_data()
+    experiment = Experiment(full_screen=False, n_trial=4,trial_index=0,start_main_blocks=0,start_post_blocks=0)
+    # experiment.intro()
+    # experiment.practice_timelimit()
+    # experiment.run_blocks()
+    experiment.intro_locolizer()
+    experiment.run_locolizer()

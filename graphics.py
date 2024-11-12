@@ -79,8 +79,11 @@ class Graphics(object):
 
     @shape
     def rect(self, pos, width, height, **kws):
-        return visual.Rect(self.win, width, height, pos=pos, **kws, lineWidth=0)
-
+    # Remove lineWidth from kws if it exists to avoid conflict
+        if 'lineWidth' in kws:
+            del kws['lineWidth']
+        return visual.Rect(self.win, width, height, pos=pos, lineWidth=0, **kws)
+    
     def animate(self, sec):
         self.animating = True
         total = round(sec * FRAME_RATE)
