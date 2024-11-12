@@ -1,5 +1,4 @@
 run:
-	git pull
 	python main.py
 
 continue:
