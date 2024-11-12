@@ -5,7 +5,7 @@ import random
 
 def main(continue_main=None ):
     if continue_main == None :
-        experiment = Experiment(full_screen=True, n_trial=120)
+        experiment = Experiment(full_screen=True,test_mode=False, n_trial=120)
         experiment.intro()
         experiment.practice_timelimit()
         experiment.run_blocks()
@@ -13,7 +13,7 @@ def main(continue_main=None ):
         experiment.run_locolizer()
         experiment.save_data()
     else:
-        experiment = Experiment(full_screen=True)
+        experiment = Experiment(full_screen=True,test_mode=False)
         experiment.run_blocks(start_block = 1)
         experiment.save_data()
 
