@@ -6,8 +6,11 @@ import random
 def main(continue_main=None ):
     if continue_main == None :
         experiment = Experiment(full_screen=True, n_trial=120)
-        # experiment.intro()
-        experiment.run_blocks(start_block = 2)
+        experiment.intro()
+        experiment.practice_timelimit()
+        experiment.run_blocks()
+        experiment.intro_locolizer()
+        experiment.run_locolizer()
         experiment.save_data()
     else:
         experiment = Experiment(full_screen=True)

@@ -8,7 +8,7 @@ from psychopy import core, visual, gui, data, event
 from psychopy.tools.filetools import fromFile, toFile
 import numpy as np
 from trials import GridWorld, Locolizer
-from config import KEY_DOWN,KEY_UP,KEY_LEFT, KEY_RIGHT, KEY_SELECT, KEY_ABORT, KEY_CONTINUE, COLOR_RED, COLOR_BLUE, COLOR_GREY, COLOR_HIGHTLIGHT, KEY_1, KEY_2, KEY_3, COLOR_1, COLOR_2, COLOR_3
+from config import KEY_DOWN,KEY_UP,KEY_LEFT, KEY_RIGHT, KEY_SELECT, KEY_ABORT, KEY_CONTINUE,KEY_RETURN, COLOR_RED, COLOR_BLUE, COLOR_GREY, COLOR_HIGHTLIGHT, KEY_1, KEY_2, KEY_3, COLOR_1, COLOR_2, COLOR_3
 from util import jsonify
 
 from triggers import Triggers
@@ -277,12 +277,12 @@ class Experiment(object):
 
         # Load a sample practice grid for movement demonstration
         sample_grid = [
-            [0, 0, 0, 0],
-            [0, 1, 1, 0],
+            [0, 1, 0, 0],
+            [0, 1, 0, 0],
             [0, 1, 1, 0],
             [0, 0, 0, 0]
         ]
-        start_pos = [[1, 1]]
+        start_pos = [[2, 1]]
         grid_world = GridWorld(win=self.win, grid=sample_grid, n=4, tile_size=0.1, trial_number=0, trial_block='practice', trial_index=0, start=start_pos, done_message='You have found all the tiles!')
 
         # Draw the initial grid
@@ -291,13 +291,13 @@ class Experiment(object):
         self.win.flip()
 
         # Guide the user through the movement steps
-        self.teach_move(grid_world, KEY_DOWN, f"Your current location is highlighted. Use the {KEY_DOWN} key to move yourself down.")
+        self.teach_move(grid_world, KEY_DOWN, f"Your current location is highlighted. Use key {KEY_DOWN} to move yourself down.")
         # self.teach_move(grid_world, KEY_UP, f"Good! Now press the {KEY_UP} key to move down.")
-        self.teach_move(grid_world, KEY_RIGHT, f"Good! Now press the {KEY_RIGHT} key to move right.")
-        self.teach_move(grid_world, KEY_LEFT, f"Good! Now press the {KEY_LEFT} key to move left.")
-        self.teach_move(grid_world, KEY_DOWN, f"If you press the {KEY_DOWN} key again.")
+        self.teach_move(grid_world, KEY_RIGHT, f"Good! Now press the key {KEY_RIGHT} to move right.")
+        self.teach_move(grid_world, KEY_LEFT, f"Good! Now press the key {KEY_LEFT} to move left.")
+        self.teach_move(grid_world, KEY_DOWN, f"If you press the key {KEY_DOWN} again.")
         self.teach_move(grid_world, KEY_DOWN, f"You will find yourself at the top of the grid. When your hit the boundary, it will start from the other side. Now press the key {KEY_DOWN}.")
-        self.teach_select(grid_world, f"Awesome! Now press the {KEY_SELECT} key to reveal where you are.")
+        self.teach_select(grid_world, f"Awesome! Now press the key {KEY_SELECT} to reveal where you are.")
         self.message("You will get 1 point for each red tiles, and lost 1 point for each white tile you reveald. The score showing on top of the grids", tip_text = "Reveal all the red tiles to continue.")
 
         grid_world.run()
@@ -312,7 +312,7 @@ class Experiment(object):
             [0, 1, 1, 0],
             [0, 0, 0, 0]
         ]
-        start_pos = [[1, 1]]
+        start_pos = [[2, 1]]
         gw = GridWorld(win=self.win, grid=sample_grid, n=4, tile_size=0.1, trial_number=0, trial_block='practice', trial_index=0, start=start_pos, time_limit=7, done_message='You have found all the tiles!')
 
         self.message("To make things more exciting, each round has a time limit.", select=True)
@@ -328,7 +328,8 @@ class Experiment(object):
             tip_text='wait for it')
         gw.run()
         self.message("If you run out of time, the game will end immediately.", select=True)
-        self.message(f"Now you will start the main game. You have total {self.n_trial_main} trials with {self.block_size} trials per block. Good luck!", select=True)
+        self.message("Now you will start the main game. It's harder than the practice!", select=True)
+        self.message(f" You have total {self.n_trial_main} trials. Your current score is {self.total_score}. Good luck!", select=True)
 
     
     @stage
@@ -408,54 +409,63 @@ class Experiment(object):
     @stage
     def intro_locolizer(self, display=False):
         rule_intro_image = visual.ImageStim(self.win, image=f'{FIG_PATH}/rule_intro.png')
-        if display: 
-            self.message("This is the example of the rule you need learn.", select=True)
-            rule_intro_image.draw()
-            self.win.flip()
-        else:
-            self.message("Now you will start the second part of the experiment. In this part, the game is a bit different.", select=True)
-        
-            self.message("You see a series of grids with pattern. Those are the examples of the grid from the game you just played.", select=True)
-            self.message("Here is the example of the rules.", select=True)
-            
-            rule_intro_image.draw()
-            self.message("You need to find the rule that generates the pattern on the each row.", select=True)
-            rule_intro_image.draw()
-            self.message("Take your time to think and remeber those patterns, and tell the experimenter the rules you found.", select=True)
-            rule_intro_image.draw()
-            self.win.flip()
-            self.message("In this part, you need to classify the rule that generates the pattern with the partial grids shown.", select=True)
-            trial = self.trials['practice'][0]
-            gw = Locolizer(win=self.win,rule_index = self.rule_index,trial_index = self.trial_index,trial_block = -1,triggers=self.triggers,time_limit=5, **trial)
-            gw.draw_grid()
-            gw.grid_plot()
-            gw.draw_timer()
-            self.message(f"You need to press key {KEY_1}, key {KEY_2}, or key {KEY_3} to make your choice.", select=True)
-            self.message("There is also a time limit for each trial. The time left is indicated by a bar on the right.", select=True)
-            gw.timer.setLineColor('#FFC910')
-            gw.timer.setLineWidth(5)
-            self.message("Your current choice is highlighted. You can always change your choice before the time runs out.", select=True)
-            self.message("MAKE YOUR CHOICE NOW!", select=True)
-            gw.run()
 
-        self.message("Press the space key to continue.", select=True)
-        event.waitKeys(keyList=['space'])
+
+        self.message("Now you will start the second part of the experiment. In this part, the game is a bit different.", select=True)
+    
+        self.message("You see a series of grids with pattern. Those are the examples of the grid from the game you just played.", select=True)
+        self.message("Here is the example of the rules.", select=True)
+        
+        rule_intro_image.draw()
+        self.message("You need to find the rule that generates the pattern on the each row.", select=True)
+        rule_intro_image.draw()
+        self.message("Take your time to think and remeber those patterns, and tell the experimenter the rules you found.", select=True)
+        rule_intro_image.draw()
+        self.win.flip()
+        self.message("In this part, you need to classify the rule that generates the pattern with the partial grids shown.", select=True)
+        trial = self.trials['practice'][0]
+        gw = Locolizer(win=self.win,rule_index = self.rule_index,trial_index = self.trial_index,trial_block = -1,triggers=self.triggers,time_limit=5, **trial)
+        gw.draw_grid()
+        gw.grid_plot()
+        gw.draw_timer()
+        self.message(f"You need to press key {KEY_1}, key {KEY_2}, or key {KEY_3} to make your choice.", select=True)
+        self.message("There is also a time limit for each trial. The time left is indicated by a bar on the right.", select=True)
+        gw.timer.setLineColor('#FFC910')
+        gw.timer.setLineWidth(5)
+        self.message("Your current choice is highlighted. You can always change your choice before the time runs out.", select=True)
+        self.message("MAKE YOUR CHOICE NOW!")
+        gw.run()
+
+
+        self.message(f"You will be compensated for your performance in this part. The starting score is {self.total_score}, which is the score you got from the last part of the experiment.", select=True)
+        self.message("Let the experimenter know when you are ready to start the next part.")
+        keys = event.waitKeys(keyList=[KEY_RETURN, KEY_CONTINUE])
+        if KEY_RETURN in keys:
+            self.message("This is the example of the rule you need to learn.")
+            rule_intro_image.draw()
+            self.win.flip()
+            event.waitKeys(keyList=[KEY_CONTINUE])  # Wait for continue after showing the image
+
+
+    
 
     @stage
-    def run_locolizer(self):
+    def run_locolizer(self):    
         # start_block = self.start_blocks - self.main_blocks
         start_block = 0
-        num_blocks = 3
+        num_blocks = 4
         # block_size = 3
         block_size = self.n_trial_post // num_blocks  # Use floor division
         block_start_trial = start_block * block_size 
         total_blocks = start_block + num_blocks
         trials = self.trials['post']
-
+        self.message(f"The experiment starts now. Good luck!", select=True)
+        self.hide_message()
         for block in range(start_block, total_blocks):
             block_end_trial = min(block_start_trial + block_size, self.n_trial_post)
             logging.info(f"Running trial {self.trial_index + 1}/{self.n_trial_post}")
             for i in range(block_start_trial, block_end_trial):
+                logging.info(f"Running trial {self.trial_index + 1}/{self.n_trial_post}")
                 trial = self.trials['post'][i]
                 gw = Locolizer(win=self.win,rule_index = self.rule_index,trial_index = self.trial_index,trial_block = block,triggers=self.triggers, **trial)
                 gw.run()
@@ -464,21 +474,27 @@ class Experiment(object):
                 self.locolizer_data.append(gw.data)
                 self.total_score += gw.data['locolizer']['score']
                 print("self.total_score", self.total_score)
-            if self.trial_index < self.n_trial_main:  # Avoid break if this is the last block
+                
+                if self.trial_index == self.n_trial_post:
+                    self.done_message = 'You have finished the largest part of the experiment! Please tell the experimenter that you are ready for the next part.'
+                    self.message('You have completed the first part of the experiment!', select=True)
+                    logging.info('Main completed.')
+                    return 
+            if self.trial_index < self.n_trial_post:  # Avoid break if this is the last block
                 self.message(
                     f"You have completed Block {block + 1} out of {total_blocks} blocks for the first part of the experiment. Your current score is {self.total_score}. Take a break. Please tell the experimenter if you are ready to the next block.",
                     select=False
                 )
-
                 keys = event.waitKeys(keyList=[KEY_CONTINUE, KEY_ABORT])
-                
+
                 if KEY_CONTINUE in keys:
                     self.hide_message()
                     
                 if KEY_ABORT in keys:
                     logging.warning('Experiment aborted by user.')
-                    self.message('Experiment aborted. Exiting...', select=True)
-                    return  # Exit the experiment if the user presses the abort key
+                    self.message('Experiment aborted. Saving data and exiting...', select=True)
+                    return  # Exit the experiment
+
 
             # Move to the next block of trials
             block_start_trial = block_end_trial
@@ -520,5 +536,5 @@ if __name__ == "__main__":
     # experiment.intro()
     # experiment.practice_timelimit()
     # experiment.run_blocks()
-    experiment.intro_locolizer()
+    # experiment.intro_locolizer()
     experiment.run_locolizer()

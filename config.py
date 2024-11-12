@@ -12,6 +12,7 @@ KEY_LEFT = '1'
 KEY_SELECT = '4'
 KEY_CONTINUE = 'c'
 KEY_ABORT = 'q'
+KEY_RETURN = 'r'
 
 KEY_1 = '1'
 KEY_2 = '2'

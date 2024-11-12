@@ -61,6 +61,7 @@ class GridWorld:
         self.trial_number = trial_number
         self.time_limit = time_limit
         self.triggers = triggers
+        self.start_positions = start
 
         self.current_time = None
         self.start_time = None
@@ -96,7 +97,8 @@ class GridWorld:
             "white_tiles": [],
             "red_tiles": [],
         }
-        self.reveal_initial_red_tile(start[0]) 
+        self.reveal_initial_tile(self.start_positions[0]) 
+        
         print(self.current_pos)
         self.timer = None  
 
@@ -179,23 +181,17 @@ class GridWorld:
                 # Draw the tile
                 rect.setAutoDraw(True)
 
-    def reveal_initial_red_tile(self, start_pos):
-        """ Reveal the tile at the start_pos if it is red, otherwise pick a random red tile. """
+    def reveal_initial_tile(self, start_pos):
+        """ Reveal the tile at the start_pos regardless of its color. """
         i, j = start_pos
         self.data["red_tiles"].append(start_pos)
-        # Check if the start position is valid and contains a red tile
-        if 0 <= i < self.n and 0 <= j < self.n and self.grid[i][j]['value'] == 1:
-            # Reveal the red tile at the start position
-            self.grid[i][j]['rect'].setColor('red')
+        
+        # Check if the start position is valid
+        if 0 <= i < self.n and 0 <= j < self.n:
+            # Reveal the tile at the start position
+            self.grid[i][j]['rect'].setColor(self.grid[i][j]['color'])
             self.grid[i][j]['revealed'] = True
-            self.log('start', {'color': 'red', 'pos': start_pos})
-        else:
-            # Fallback: Reveal a random red tile if the start position is not red
-            red_tiles = [(x, y) for x in range(self.n) for y in range(self.n) if self.grid[x][y]['value'] == 1]
-            if red_tiles:
-                x, y = random.choice(red_tiles)
-                self.grid[x][y]['rect'].setColor('red')
-                self.grid[x][y]['revealed'] = True
+            self.log('start', {'color': self.grid[i][j]['color'], 'pos': start_pos})
 
     
     def highlight_tile(self):
@@ -238,6 +234,7 @@ class GridWorld:
 
     def draw_grid(self):
         """ Draw all the tiles in the grid. """
+        
         for row in self.grid:
             for cell in row:
                 cell['rect'].setAutoDraw(True)  # Ensure each rectangle is set to be drawn
@@ -362,6 +359,7 @@ class GridWorld:
         """ Main loop to run the grid world. """
         event.clearEvents()
         self.draw_timer()
+       
         self.start_time = self.current_time = core.getTime()
         self.end_time = None if self.time_limit is None else self.start_time + self.time_limit
         self.start_time = self.tick()
@@ -548,7 +546,7 @@ class Locolizer(GridWorld):
 
         self.log('done')
         if self.current_choice is None:
-            self.center_message('Warning: No choice made!')
+            self.message('Warning: No choice made!')
         logging.info('timeout')
         self.done_time = core.getTime()
         self.log('done')
@@ -582,8 +580,10 @@ class Locolizer(GridWorld):
                 logging.info("Abort key pressed. Exiting the game.")
                 self.done = True
                 self.status = 'abort'
+                break
             if KEY_CONTINUE in keys:
                 self.done = True
+                break
             if KEY_1 in keys:
                 self.current_choice = '1'
                 self.highlight_choice(0)
@@ -596,10 +596,7 @@ class Locolizer(GridWorld):
                 self.current_choice = '3'
                 self.highlight_choice(2)
                 self.log('choice', {'choice': '3'})
-            if KEY_ABORT in keys:
-                logging.info("Abort key pressed. Exiting the game.")
-                self.done = True
-                self.status = 'abort'
+
 
         # Clean up and finish
         self.update_score()

@@ -284,10 +284,10 @@ if __name__=='__main__':
     localizer = generate_locolizer(rules = 'chain',reveal_n = 4, n = n)
     practice.append(localizer)
 
-    for reveal_n in [5,3,2]:
+    for reveal_n in [5,4,3,2]:
         locolizer_bin = []
         for rules in ['chain', 'tree', 'loop']:
-            for _ in range(15):
+            for _ in range(10):
                 locolizer = generate_locolizer(rules = rules,reveal_n = reveal_n, n = n)
                 locolizer_bin.append(locolizer)
         random.shuffle(locolizer_bin)
