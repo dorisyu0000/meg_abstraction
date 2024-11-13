@@ -9,7 +9,7 @@ def main(continue_main=None ):
         # experiment.intro()
         experiment.practice_timelimit()
         experiment.run_blocks()
-        experiment.intro_locolizer()
+        # experiment.intro_locolizer()
         experiment.run_locolizer()
         experiment.save_data()
     else:
