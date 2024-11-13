@@ -5,8 +5,8 @@ import random
 
 def main(continue_main=None ):
     if continue_main == None :
-        experiment = Experiment(full_screen=True,test_mode=False, n_trial=10)
-        experiment.intro()
+        experiment = Experiment(full_screen=True,test_mode=False, n_trial=120)
+        # experiment.intro()
         experiment.practice_timelimit()
         experiment.run_blocks()
         experiment.intro_locolizer()
