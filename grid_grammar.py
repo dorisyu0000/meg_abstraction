@@ -46,7 +46,7 @@ def chain_production(grid,check=True,n=7):
             expansion=[expansions[i] for i in choice_idx2]
 
         for node in expansion:
-            terminal=np.random.binomial(1,0.1)
+            terminal=np.random.binomial(1,0.2)
             if terminal==1:
                 grid[node[0],node[1]]=1
             else:
@@ -98,7 +98,7 @@ def tree_production(grid,check=True,n=7):
             if len(str(grid[node[3][0],node[3][0]]))>1:
                 terminal=0
             else:
-                terminal=np.random.binomial(1,0.2)
+                terminal=np.random.binomial(1,0.3)
             if terminal:
                 grid[node[0],node[1]]=1
             else:
@@ -145,7 +145,7 @@ def loop_production(grid, check=True, n=7):
         expansion = [node0, node1]
 
         for i, node in enumerate(expansion):
-            terminal = np.random.binomial(1, 0.5)
+            terminal = np.random.binomial(1, 0.3)
             if terminal:
                 grid[node[0], node[1]] = 1
             else:
@@ -299,7 +299,7 @@ if __name__=='__main__':
     # Generate and save other files without fixed seed
     for i in range(1, 11):  # Start from 1 because 0 is for sample.json
         random.shuffle(main) 
-        rule_index = {'A':'tree', 'B':'loop', 'C':'chain'}
+        rule_index = {1:'tree', 2:'loop', 3:'chain'}
         trials = {
         'practice': practice,
         'main': main,

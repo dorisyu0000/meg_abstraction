@@ -27,7 +27,7 @@ TRIGGERS = {
 
 
 class GridWorld:
-    def __init__(self, win, grid, start,n,trial_number,trial_index,trial_block, done_message = None, time_limit = 20,rule = 'defualt', triggers=None, full_screen=False, tile_size=0.1, eyelink=None, score=0):
+    def __init__(self, win, grid, start,n,trial_number,trial_index,trial_block, done_message = None, time_limit = 25,rule = 'defualt', triggers=None, full_screen=False, tile_size=0.1, eyelink=None):
         """
         Initialize the grid world with a predefined grid.
         Parameters:
@@ -56,7 +56,7 @@ class GridWorld:
         self.grid_code = grid  # Store the provided grid
         self.grid = self.create_grid()
         self.current_pos = start[0]  # Starting position for the cursor
-        self.score = score
+        self.score = 0
         self.rule = rule
         self.trial_number = trial_number
         self.time_limit = time_limit
@@ -176,7 +176,7 @@ class GridWorld:
 
                 # Create the tile (rectangle) and set its fill color and position
                 rect = self.gfx.rect((x_pos, y_pos), self.tile_size, self.tile_size,
-                                     fillColor=color, lineColor='black')
+                                     fillColor=color, lineColor='white')
 
                 # Draw the tile
                 rect.setAutoDraw(True)
@@ -204,7 +204,7 @@ class GridWorld:
                     self.grid[i][j]['rect'].setLineWidth(6)  # Increase the line width to make it stand out
                 else:
                     # Reset others: Only reset if they are not revealed yet
-                    self.grid[i][j]['rect'].setLineColor('black')  # Reset the line color for unselected tiles
+                    self.grid[i][j]['rect'].setLineColor('white')  # Reset the line color for unselected tiles
                     self.grid[i][j]['rect'].setLineWidth(1)  # Reset line width to default
 
     def reveal_tile(self):
@@ -230,6 +230,8 @@ class GridWorld:
             self.score -= 1
         else:
             self.score += value
+        self.data["trial"]["score"] = self.score
+
 
 
     def draw_grid(self):
@@ -369,6 +371,7 @@ class GridWorld:
             self.highlight_tile()
             self.draw_grid()
             self.message(f'Score: {self.score}')
+
             self.win.flip()
 
             # Get key input and check for combinations
@@ -501,11 +504,18 @@ class Locolizer(GridWorld):
     
     def update_score(self):
         """ Update the score based on the current choice and rule index. """
+        # Define the rule index mapping
+        rule_index = {1: 'tree', 2: 'loop', 3: 'chain'}
+        
         # Check if the current choice matches the correct choice in the rule index
-        if self.current_choice and self.rule_index.get(self.current_choice) == self.correct_choice:
+        if self.current_choice and rule_index.get(self.current_choice) == self.correct_choice:
             self.score += 1
             logging.info(f"Correct choice! Score increased to {self.score}.")
+        if self.current_choice is None:
+            self.score = self.score
+            logging.info(f"No choice made. Score remains {self.score}.")
         else:
+            self.score -= 1
             logging.info(f"Incorrect choice or no choice made. Score remains {self.score}.")
         self.data["locolizer"]["score"] = self.score
 
@@ -520,12 +530,12 @@ class Locolizer(GridWorld):
 
         for pos, color, label in zip(self.choice_pos, colors, labels):
             # Draw the white square
-            square = self.gfx.rect(pos, 0.15, 0.15, fillColor='white', lineColor='black')
+            square = self.gfx.rect(pos, 0.1, 0.1, fillColor='white', lineColor='black')
             square.setAutoDraw(True)
             self.choice_squares.append(square)
 
             # Draw the label with the specified color
-            text_stim = self.gfx.text(label, pos=pos, color=color, height=0.1)
+            text_stim = self.gfx.text(label, pos=pos, color=color, height=0.08)
             text_stim.setAutoDraw(True)
 
     def highlight_choice(self, index):
@@ -546,8 +556,8 @@ class Locolizer(GridWorld):
 
         self.log('done')
         if self.current_choice is None:
-            self.message('Warning: No choice made!')
-        logging.info('timeout')
+            self.message('No choice made!')
+            self.log('timeout', {'choice': 'none'})
         self.done_time = core.getTime()
         self.log('done')
         core.wait(1) 
@@ -570,7 +580,7 @@ class Locolizer(GridWorld):
             if not self.done and self.end_time is not None and self.current_time > self.end_time:
                 self.do_timeout()
                 self.done = True
-                logging.info(f"Confirmed choice: {self.current_choice}")
+                self.log('final_choice', {'choice': self.current_choice})
 
             self.tick()
 
@@ -580,20 +590,20 @@ class Locolizer(GridWorld):
                 logging.info("Abort key pressed. Exiting the game.")
                 self.done = True
                 self.status = 'abort'
-                break
+                return self.status
             if KEY_CONTINUE in keys:
                 self.done = True
                 break
             if KEY_1 in keys:
-                self.current_choice = '1'
+                self.current_choice = 1
                 self.highlight_choice(0)
                 self.log('choice', {'choice': '1'})
             elif KEY_2 in keys:
-                self.current_choice = '2'
+                self.current_choice = 2
                 self.highlight_choice(1)
                 self.log('choice', {'choice': '2'})
             elif KEY_3 in keys:
-                self.current_choice = '3'
+                self.current_choice = 3
                 self.highlight_choice(2)
                 self.log('choice', {'choice': '3'})
 

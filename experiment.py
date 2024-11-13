@@ -73,7 +73,7 @@ def get_next_config_number():
 class AbortKeyPressed(Exception): pass
 
 class Experiment(object):
-    def __init__(self, config_number = None, block_size = 12,start_main_blocks = None, start_post_blocks = None, test_mode=False,name=None, full_screen=False,continue_trial = None, n_trial = None, **kws):
+    def __init__(self, config_number = None, block_size = 12,start_main_blocks = None, start_post_blocks = None, test_mode=True,name=None, full_screen=True,continue_trial = None, n_trial = None, **kws):
         if config_number is None and continue_trial is None:
             config_number = get_next_config_number()
         elif continue_trial is not None:
@@ -380,7 +380,9 @@ class Experiment(object):
                 psychopy.logging.flush()
                 self.trial_data.append(gw.data)
                 self.total_score += gw.data['trial']['score']
-                self.trial_index == trial_index
+                print("gw.data['trial']['score']", gw.data['trial']['score'])
+                self.trial_index = trial_index
+                print("score is total_score", self.total_score)
 
                 # If we've reached the last trial, show the final message
                 if self.trial_index == self.n_trial_main:
@@ -414,12 +416,12 @@ class Experiment(object):
         self.message("Now you will start the second part of the experiment. In this part, the game is a bit different.", select=True)
     
         self.message("You see a series of grids with pattern. Those are the examples of the grid from the game you just played.", select=True)
-        self.message("Here is the example of the rules.", select=True)
+        self.message("Here is the example of the rules. ", select=True)
         
         rule_intro_image.draw()
         self.message("You need to find the rule that generates the pattern on the each row.", select=True)
         rule_intro_image.draw()
-        self.message("Take your time to think and remeber those patterns, and tell the experimenter the rules you found.", select=True)
+        self.message("Take your time to think and remeber those patterns. THIS IS THE LAST TIME YOU CAN SEE THESE PATTERNS.", select=True)
         rule_intro_image.draw()
         self.win.flip()
         self.message("In this part, you need to classify the rule that generates the pattern with the partial grids shown.", select=True)
@@ -435,9 +437,9 @@ class Experiment(object):
         self.message("Your current choice is highlighted. You can always change your choice before the time runs out.", select=True)
         self.message("MAKE YOUR CHOICE NOW!")
         gw.run()
-
-
-        self.message(f"You will be compensated for your performance in this part. The starting score is {self.total_score}, which is the score you got from the last part of the experiment.", select=True)
+        self.message("You will be compensated for your performance in this part. If your answer is correct, you will get 1 point. If you answer is incorrect, you will lose 1 point. ", select=True)
+        self.message("If you are not sure about the answer, you can choose not to make a choice. In this case, you will not get or loss any points.", select=True)
+        self.message(f" The starting score is {self.total_score}, which is the score you got from the last part of the experiment.", select=True)
         self.message("Let the experimenter know when you are ready to start the next part.")
         keys = event.waitKeys(keyList=[KEY_RETURN, KEY_CONTINUE])
         if KEY_RETURN in keys:
@@ -476,10 +478,11 @@ class Experiment(object):
                 print("self.total_score", self.total_score)
                 
                 if self.trial_index == self.n_trial_post:
-                    self.done_message = 'You have finished the largest part of the experiment! Please tell the experimenter that you are ready for the next part.'
-                    self.message('You have completed the first part of the experiment!', select=True)
+                    self.done_message = 'You have completed the second part of the experiment!'
+                    self.message('This is the end of the experiment!', select=True)
                     logging.info('Main completed.')
                     return 
+                
             if self.trial_index < self.n_trial_post:  # Avoid break if this is the last block
                 self.message(
                     f"You have completed Block {block + 1} out of {total_blocks} blocks for the first part of the experiment. Your current score is {self.total_score}. Take a break. Please tell the experimenter if you are ready to the next block.",
