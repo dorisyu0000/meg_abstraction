@@ -283,7 +283,7 @@ class Experiment(object):
             [0, 0, 0, 0]
         ]
         start_pos = [[2, 1]]
-        grid_world = GridWorld(win=self.win, grid=sample_grid, n=4, tile_size=0.1, trial_number=0, trial_block='practice', trial_index=0, start=start_pos, done_message='You have found all the tiles!')
+        grid_world = GridWorld(win=self.win, grid=sample_grid, n=4, tile_size=0.1, trial_number=0, time_limit=20,trial_block='practice', trial_index=0, start=start_pos, done_message='You have found all the tiles!')
 
         # Draw the initial grid
         grid_world.highlight_tile()
@@ -302,8 +302,8 @@ class Experiment(object):
 
         grid_world.run()
         # Final instruction
-        self.message(f"You have completed the practice! Please let the experimenter know when you are ready to start the next part.")
-        event.waitKeys(keyList=[KEY_CONTINUE])
+        self.message(f"You have completed the practice! Please let the experimenter know if you have any questions.", select=True)
+
         
     @stage
     def practice_timelimit(self):
@@ -330,8 +330,9 @@ class Experiment(object):
         gw.run()
         self.message("If you run out of time, the game will end immediately.", select=True)
         self.message("Now you will start the main game. It's harder than the practice!", select=True)
-        self.message(f" You have total {self.n_trial_main} trials. Your current score is {self.total_score}. Good luck!", select=True)
-
+        self.message(f" You have total {self.n_trial_main} trials. Your current score is {self.total_score}.", select=True)
+        self.message("Please wait for the experimenter to start the next part.")
+        event.waitKeys(keyList=[KEY_CONTINUE])
     
     @stage
     def run_pratice(self):
