@@ -325,8 +325,8 @@ class Experiment(object):
 
         self.message("The time left is indicated by a bar on the right.", select=True)
         gw.timer.setLineWidth(0)
-        self.message("Let's see what happens when it runs out...", select=False,
-            tip_text='wait for it')
+        self.message("You need to find all the red tiles before the time runs out, which will give you 5 points bonus!", select=False,
+            tip_text='wait for the time to run out')
         gw.run()
         self.message("If you run out of time, the game will end immediately.", select=True)
         self.message("Now you will start the main game. It's harder than the practice!", select=True)
