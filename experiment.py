@@ -299,7 +299,6 @@ class Experiment(object):
         self.teach_move(grid_world, KEY_DOWN, f"You will find yourself at the top of the grid. When your hit the boundary, it will start from the other side. Now press the key {KEY_DOWN}.")
         self.teach_select(grid_world, f"Awesome! Now press the key {KEY_SELECT} to reveal where you are.")
         self.message("You will get 1 point for each red tiles, and lost 1 point for each white tile you reveald. The score showing on top of the grids", tip_text = "Reveal all the red tiles to continue.")
-
         grid_world.run()
         # Final instruction
         self.message(f"You have completed the practice! Please let the experimenter know if you have any questions.", select=True)
@@ -456,6 +455,7 @@ class Experiment(object):
     @stage
     def run_locolizer(self):    
         # start_block = self.start_blocks - self.main_blocks
+        self.trial_index = 0
         start_block = 0
         num_blocks = 4
         # block_size = 3
@@ -539,6 +539,6 @@ if __name__ == "__main__":
     experiment = Experiment(full_screen=False, n_trial=4,trial_index=0,start_main_blocks=0,start_post_blocks=0)
     # experiment.intro()
     # experiment.practice_timelimit()
-    experiment.run_blocks()
+    # experiment.run_blocks()
     experiment.intro_locolizer()
     experiment.run_locolizer()
