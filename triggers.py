@@ -2,10 +2,10 @@ import serial
 import logging
 import time
 
-DEFAULT_MESSAGES = [f'TRIGGER{i}' for i in range(7)]
+DEFAULT_MESSAGES = [f'TRIGGER{i}' for i in range(8)]
 
 class Triggers(object):
-    mapping = ['mh\x01', 'mh\x02', 'mh\x04', 'mh\x08', 'mh\x10', 'mh 0', 'mh@0']
+    mapping = ['mh\x01', 'mh\x02', 'mh\x04', 'mh\x08', 'mh\x10', 'mh 0', 'mh@0', 'mh\x20', 'mh\x40']
 
     """docstring for StimTrackerTriggers"""
     def __init__(self, port='/dev/cu.usbserial-A900a2R9', messages=DEFAULT_MESSAGES, baudrate=115200):
@@ -32,7 +32,7 @@ class Triggers(object):
 
         Parameters
         ----------
-        code: an integer 0-6 writes to chanel 16`code` (160-166)
+        code: an integer 0-8 writes to channel 160-168
 
         duration: how long the marker pulse stays
             unit in second

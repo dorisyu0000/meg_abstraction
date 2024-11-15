@@ -23,6 +23,7 @@ TRIGGERS = {
     'reveal_white': 3,
     'done': 4,
     'choice': 5,
+    'timeout': 6,
 }
 
 
@@ -83,10 +84,9 @@ class GridWorld:
         self.timeout_message = "Sorry, you ran out of time. Try to be faster next time."
         self.data = {
             "trial": {
-                "kind": self.__class__.__name__,
                 "rule": self.rule,
                 "trial_number": self.trial_number,
-                "grid": self.grid_code,
+                "grid": self.grid,
                 "score": self.score,
                 "total_reveal": self.total_reveald,
                 "start": start,
@@ -191,7 +191,6 @@ class GridWorld:
             # Reveal the tile at the start position
             self.grid[i][j]['rect'].setColor(self.grid[i][j]['color'])
             self.grid[i][j]['revealed'] = True
-            self.log('start', {'color': self.grid[i][j]['color'], 'pos': start_pos})
 
     
     def highlight_tile(self):
@@ -429,7 +428,7 @@ class Locolizer(GridWorld):
         self.n = n
         self.tile_size = tile_size
         self.gap = 0.01
-        self.current_choice = None  
+        self.current_choice = 0  
         self.correct_choice = rule
         self.rule_index = rule_index
         self.score = 0
@@ -505,49 +504,47 @@ class Locolizer(GridWorld):
     def update_score(self):
         """ Update the score based on the current choice and rule index. """
         # Define the rule index mapping
-        rule_index = {1: 'tree', 2: 'loop', 3: 'chain'}
-        
+        rule_index = {0:'None', 1: 'tree', 2: 'loop', 3: 'chain'}
+        self.final_choice = rule_index.get(self.current_choice)
         # Check if the current choice matches the correct choice in the rule index
-        if self.current_choice and rule_index.get(self.current_choice) == self.correct_choice:
+        print(f"current choice: {self.final_choice}, correct choice: {self.correct_choice}")
+        if self.final_choice == self.correct_choice:
             self.score += 1
             logging.info(f"Correct choice! Score increased to {self.score}.")
-        if self.current_choice is None:
+        if self.current_choice == 0:
             self.score = self.score
             logging.info(f"No choice made. Score remains {self.score}.")
-        else:
+        elif self.final_choice != self.correct_choice:
             self.score -= 1
             logging.info(f"Incorrect choice or no choice made. Score remains {self.score}.")
+        print(f"score: {self.score}")
         self.data["locolizer"]["score"] = self.score
 
     def grid_plot(self):
         """ Draw labels 1, 2, 3 with colors KEY_1, KEY_2, KEY_3 and place them on white squares. """
-        # Define positions for the squares and labels
+        # Define positions for the labels
         self.choice_pos = [(-0.3, -0.4), (0, -0.4), (0.3, -0.4)]
         colors = [COLOR_1, COLOR_2, COLOR_3]
         labels = ['1', '2', '3']
 
-        self.choice_squares = []  # Store references to the choice squares
+        self.choice_texts = []  # Store references to the choice text stimuli
 
-        for pos, color, label in zip(self.choice_pos, colors, labels):
-            # Draw the white square
-            square = self.gfx.rect(pos, 0.1, 0.1, fillColor='white', lineColor='black')
-            square.setAutoDraw(True)
-            self.choice_squares.append(square)
-
-            # Draw the label with the specified color
-            text_stim = self.gfx.text(label, pos=pos, color=color, height=0.08)
+        for pos, label in zip(self.choice_pos, labels):
+            # Draw the label with white color initially
+            text_stim = self.gfx.text(label, pos=pos, color='white', height=0.08)
             text_stim.setAutoDraw(True)
+            self.choice_texts.append(text_stim)
 
     def highlight_choice(self, index):
-        """ Highlight the choice at the given index by changing the border of the square. """
-        # Clear any existing highlight
-        for i, square in enumerate(self.choice_squares):
+        """ Highlight the choice at the given index by changing the text color. """
+        colors = [COLOR_1, COLOR_2, COLOR_3]
+
+        # Update the color of the text at the given index
+        for i, text_stim in enumerate(self.choice_texts):
             if i == index:
-                square.setLineColor(COLOR_HIGHTLIGHT)
-                square.setLineWidth(6)
+                text_stim.setColor(colors[i])  # Set the color to the corresponding choice color
             else:
-                square.setLineColor('white')
-                square.setLineWidth(1)
+                text_stim.setColor('white')  # Reset other text colors to white
     
     def do_timeout(self):
         for i in range(3):
@@ -555,9 +552,9 @@ class Locolizer(GridWorld):
             wait(0.1)
 
         self.log('done')
-        if self.current_choice is None:
+        if self.current_choice == 0:
             self.message('No choice made!')
-            self.log('timeout', {'choice': 'none'})
+            self.log('timeout', {'choice': 'None'})
         self.done_time = core.getTime()
         self.log('done')
         core.wait(1) 
@@ -568,6 +565,7 @@ class Locolizer(GridWorld):
         """ Main loop to run the grid world without highlighting or moving. """
         event.clearEvents()
         self.draw_timer()
+        self.log('start')
         self.start_time = self.current_time = core.getTime()
         self.end_time = None if self.time_limit is None else self.start_time + self.time_limit
         self.start_time = self.tick()

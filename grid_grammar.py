@@ -57,7 +57,7 @@ def chain_production(grid,check=True,n=7):
 
 
 #1=terminal, 2=south, 3=east, 4=north, 5=west
-def tree_production(grid,check=True,n=7):
+def tree_production(grid,check=True,n=4):
     idxs=np.where(grid>1)
     possible_expansions_nodes=[]
     for i in range(len(idxs[0])):
@@ -88,6 +88,7 @@ def tree_production(grid,check=True,n=7):
                 choice_idx2=np.random.choice(range(len(expansions)),size=2)
                 expansion=[expansions[i] for i in choice_idx2]
                 directions=[e[2] for e in expansion]
+            
         else:
             expansion=expansions
         node0=(expansion[0][0],expansion[0][1],expansion[0][2]+complement(expansion[1][2]),expansion[0][3])
@@ -95,10 +96,10 @@ def tree_production(grid,check=True,n=7):
         #print(expansions,expansion,node0,node1)
         expansion=[node0,node1]
         for i,node in enumerate(expansion):
-            if len(str(grid[node[3][0],node[3][0]]))>1:
+            if len(str(grid[node[3][0],node[3][0]]))>2:
                 terminal=0
             else:
-                terminal=np.random.binomial(1,0.3)
+                terminal=np.random.binomial(1,0.2)
             if terminal:
                 grid[node[0],node[1]]=1
             else:
@@ -145,7 +146,7 @@ def loop_production(grid, check=True, n=7):
         expansion = [node0, node1]
 
         for i, node in enumerate(expansion):
-            terminal = np.random.binomial(1, 0.3)
+            terminal = np.random.binomial(1, 0.2)
             if terminal:
                 grid[node[0], node[1]] = 1
             else:

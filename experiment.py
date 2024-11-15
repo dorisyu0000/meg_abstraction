@@ -302,7 +302,8 @@ class Experiment(object):
 
         grid_world.run()
         # Final instruction
-        self.message(f"You have completed the practice! If you have any questions about the game, please ask the experimenter.", select=True)
+        self.message(f"You have completed the practice! Please let the experimenter know when you are ready to start the next part.")
+        event.waitKeys(keyList=[KEY_CONTINUE])
         
     @stage
     def practice_timelimit(self):
@@ -498,7 +499,6 @@ class Experiment(object):
                     self.message('Experiment aborted. Saving data and exiting...', select=True)
                     return  # Exit the experiment
 
-
             # Move to the next block of trials
             block_start_trial = block_end_trial
 
@@ -536,8 +536,8 @@ class Experiment(object):
 
 if __name__ == "__main__":
     experiment = Experiment(full_screen=False, n_trial=4,trial_index=0,start_main_blocks=0,start_post_blocks=0)
-    # experiment.intro()
+    experiment.intro()
     # experiment.practice_timelimit()
     # experiment.run_blocks()
-    # experiment.intro_locolizer()
+    experiment.intro_locolizer()
     experiment.run_locolizer()
