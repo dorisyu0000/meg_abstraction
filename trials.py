@@ -347,7 +347,7 @@ class GridWorld:
             wait(0.3)
             self.timer_wrap.setColor(-.2); self.win.flip()
             wait(0.3)
-        self.log('timeout')
+        
         self.draw_full_grid()
         self.done_time = core.getTime()
         self.center_message(f'{self.timeout_message}')
@@ -378,6 +378,7 @@ class GridWorld:
 
             if not self.done and self.end_time is not None and self.current_time > self.end_time:
                 self.do_timeout()
+                self.log('timeout')
                 self.done = True
   
             self.tick()
