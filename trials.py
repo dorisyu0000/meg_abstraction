@@ -401,7 +401,7 @@ class GridWorld:
                 self.reveal_tile()
                 if self.red_revealed == self.total_red:
                     self.log('done')
-                    self.score += 5
+                    self.score += 3
             
 
             if self.red_revealed >= self.total_red:
