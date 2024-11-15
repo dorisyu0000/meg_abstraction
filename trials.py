@@ -225,7 +225,7 @@ class GridWorld:
 
 
     def update_score(self, value):
-        if value != 1:
+        if value == 0:
             self.score -= 1
         else:
             self.score += value
@@ -399,22 +399,18 @@ class GridWorld:
                 self.move_cursor('right')
             elif KEY_SELECT in keys:
                 self.reveal_tile()
-                if self.red_revealed == self.total_red:
+                if self.red_revealed >= self.total_red:
+                    self.update_score(3)
+                    print(self.score)
                     self.log('done')
-                    self.score += 3
-            
-
-            if self.red_revealed >= self.total_red:
-                self.draw_full_grid()
-                self.center_message(f'{self.done_message}')
-                while self.current_time < self.end_time:
-                    self.tick()
-                    self.win.flip()
-                
-                logging.info("All red tiles revealed. Moving to next trial.")
-                self.done = True
-
-            
+                    self.message(f'Score: {self.score}')
+                    self.draw_full_grid()
+                    self.center_message(f'{self.done_message}')
+                    while self.end_time is not None and self.current_time < self.end_time:
+                        self.tick()
+                        self.win.flip()
+                    logging.info("All red tiles revealed. Waiting for next trial.")
+                    self.done = True
 
         # Clean up and finish
         self.hide_message()

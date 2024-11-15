@@ -73,7 +73,7 @@ def get_next_config_number():
 class AbortKeyPressed(Exception): pass
 
 class Experiment(object):
-    def __init__(self, config_number = None, block_size = 12,start_main_blocks = None, start_post_blocks = None, test_mode=True,name=None, full_screen=True,continue_trial = None, n_trial = None, **kws):
+    def __init__(self,score =0, config_number = None, block_size = 12,start_main_blocks = None, start_post_blocks = None, test_mode=True,name=None, full_screen=True,continue_trial = None, n_trial = None, **kws):
         if config_number is None and continue_trial is None:
             config_number = get_next_config_number()
         elif continue_trial is not None:
@@ -107,17 +107,17 @@ class Experiment(object):
             self.trials = conf['trials']
         if n_trial is None:
             self.n_trial_main = int(len(self.trials['main']))
+            self.n_trial_post = int(len(self.trials['post']))
         else:
             self.n_trial_main  = n_trial
+            self.n_trial_post = n_trial
         self.rule_index = conf['rule_index']
         print(self.rule_index)
-        self.n_trial_post = int(len(self.trials['post']))
-        print("self.n_trial_post", self.n_trial_post)
         # self.parameters.update(kws)
         # logging.info('parameters %s', self.parameters)
 
         self.win = self.setup_window()
-        self.total_score = 0
+        self.total_score = score
         self.eyelink = None
         self.done_message = 'All red tiles revealed. Moving to next trial in 1 second.'
         self._message = visual.TextBox2(
@@ -283,7 +283,7 @@ class Experiment(object):
             [0, 0, 0, 0]
         ]
         start_pos = [[2, 1]]
-        grid_world = GridWorld(win=self.win, grid=sample_grid, n=4, tile_size=0.1, trial_number=0, time_limit=20,trial_block='practice', trial_index=0, start=start_pos, done_message='You have found all the tiles!')
+        grid_world = GridWorld(win=self.win, grid=sample_grid, n=4, tile_size=0.1, trial_number=0, time_limit=None,trial_block='practice', trial_index=0, start=start_pos, done_message='You have found all the tiles!')
 
         # Draw the initial grid
         grid_world.highlight_tile()
@@ -345,7 +345,7 @@ class Experiment(object):
     
 
     @stage
-    def run_blocks(self):
+    def run_blocks(self, n_trial_main=None):
         """
         Run through trials in blocks, with breaks between each block.
         Each block consists of a fixed number of trials (e.g., 10 trials).
@@ -537,8 +537,8 @@ class Experiment(object):
 
 if __name__ == "__main__":
     experiment = Experiment(full_screen=False, n_trial=4,trial_index=0,start_main_blocks=0,start_post_blocks=0)
-    experiment.intro()
+    # experiment.intro()
     # experiment.practice_timelimit()
-    # experiment.run_blocks()
+    experiment.run_blocks()
     experiment.intro_locolizer()
     experiment.run_locolizer()
